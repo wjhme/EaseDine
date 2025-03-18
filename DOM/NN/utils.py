@@ -1,5 +1,6 @@
 from gensim.corpora import Dictionary
-from keras.preprocessing import sequence
+import paddle
+# from keras.preprocessing import sequence
 import numpy as np
 
 class NeuralNetwork(object):
@@ -102,13 +103,13 @@ class NeuralNetwork(object):
 # 加载数据
 def loadfile():
     # 加载正样本
-    fopen = open('rawData/ham.txt', 'r')
+    fopen = open(r'E:\githubworkspace\EaseDine\DOM\NN\rawData\ham.txt', 'r')
     pos = []
     for line in fopen:
         pos.append(line)
 
     # 加载负样本
-    fopen = open('rawData/spam.txt', 'r')
+    fopen = open(r'E:\githubworkspace\EaseDine\DOM\NN\rawData\spam.txt', 'r')
     neg = []
     for line in fopen:
         neg.append(line)
@@ -143,8 +144,8 @@ def create_dictionaries(model=None,combined=None):
                 new_txt = []
                 sentences = sentence.split(' ')
                 for word in sentences:
-		    try:
-		        word = unicode(word, errors='ignore')
+                    try:
+                        word = unicode(word, errors='ignore')
                         new_txt.append(w2indx[word])
                     except:
                         new_txt.append(0)
@@ -155,3 +156,6 @@ def create_dictionaries(model=None,combined=None):
         return w2indx, w2vec,combined
     else:
         print('No data provided...')
+
+if __name__=='__main__':
+    combined, y = loadfile()
