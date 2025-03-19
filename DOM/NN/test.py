@@ -1,3 +1,7 @@
+# import os
+# os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+import torch
+print(torch.cuda.is_available())
 def count_records(file_path):
     """
     统计 txt 文件中的记录数（假设每条记录占一行）
@@ -14,17 +18,17 @@ def count_records(file_path):
         return 0
 
 
-# 示例调用
-ham_file = "rawData/ham.txt"
-spam_file = "rawData/spam.txt"
-word2vec_file = "rawData/word2vec.txt"
-# ham_records = count_records(ham_file)
-# spam_records = count_records(spam_file)
-# word2vec_records = count_records(word2vec_file)
-# print(f"ham_records:{ham_records}")
-# print(f"spam_records:{spam_records}")
-# print(f"word2vec_records:{word2vec_records}")
-with open(word2vec_file, 'r', encoding='gbk') as file:
-    for line in file:
-        print(line)
-        break
+# # 示例调用
+# ham_file = "rawData/ham.txt"
+# spam_file = "rawData/spam.txt"
+# word2vec_file = "rawData/word2vec.txt"
+# # ham_records = count_records(ham_file)
+# # spam_records = count_records(spam_file)
+# # word2vec_records = count_records(word2vec_file)
+# # print(f"ham_records:{ham_records}")
+# # print(f"spam_records:{spam_records}")
+# # print(f"word2vec_records:{word2vec_records}")
+# with open(word2vec_file, 'r', encoding='gbk') as file:
+#     for line in file:
+#         print(line)
+#         break
