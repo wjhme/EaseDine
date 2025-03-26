@@ -107,7 +107,7 @@ if __name__=="__main__":
     file_path = str(DIR) + '\\trec06c\\data'
     label_path = str(DIR) + '\\trec06c\\full\\index'
     stop_word_path = str(DIR) + "\\stopwords\\cn_stopwords.txt"
-    word_vec_path = "rawData/word2vec.txt"
+    word_vec_path = "../rawData/word2vec.txt"
     spam_data = "spam.txt"
     ham_data = "ham.txt"
     label_dict = load_label_files(label_path)

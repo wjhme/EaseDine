@@ -25,20 +25,20 @@ def train_predict_evaluate_model(classifier, train_features, train_labels, test_
     accuracy = accuracy_score(test_labels, y_pred)
     print(f"模型准确率: {accuracy:.2f}")
 
-    # 计算 F1 得分
-    f1 = f1_score(test_labels, y_pred, average='weighted')
-    print(f"F1 得分: {f1:.2f}")
-
-    # 计算召回率
-    recall = recall_score(test_labels, y_pred, average='weighted')
-    print(f"召回率: {recall:.2f}")
-
-    # 打印分类报告
-    print("分类报告:")
-    print(classification_report(test_labels, y_pred))
-
-    # 打印混淆矩阵
-    print("混淆矩阵:")
-    print(confusion_matrix(test_labels, y_pred))
+    # # 计算 F1 得分
+    # f1 = f1_score(test_labels, y_pred, average='weighted')
+    # print(f"F1 得分: {f1:.2f}")
+    #
+    # # 计算召回率
+    # recall = recall_score(test_labels, y_pred, average='weighted')
+    # print(f"召回率: {recall:.2f}")
+    #
+    # # 打印分类报告
+    # print("分类报告:")
+    # print(classification_report(test_labels, y_pred))
+    #
+    # # 打印混淆矩阵
+    # print("混淆矩阵:")
+    # print(confusion_matrix(test_labels, y_pred))
 
     return y_pred
