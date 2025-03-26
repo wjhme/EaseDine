@@ -18,7 +18,7 @@ class MySentences(object):
                 yield line.strip().split()
 
 # word2vec.txt数据的地址
-train_path = "rawData/"
+train_path = "../rawData/"
 
 # 生成的word2vec模型的地址
 model_path = "model"
