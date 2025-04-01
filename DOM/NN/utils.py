@@ -103,13 +103,13 @@ class NeuralNetwork(object):
 # 加载数据
 def loadfile():
     # 加载正样本
-    fopen = open(r'E:\githubworkspace\EaseDine\DOM\NN\rawData\ham.txt', 'r')
+    fopen = open(r'E:\githubworkspace\EaseDine\DOM\rawData\ham.txt', 'r')
     pos = []
     for line in fopen:
         pos.append(line)
 
     # 加载负样本
-    fopen = open(r'E:\githubworkspace\EaseDine\DOM\NN\rawData\spam.txt', 'r')
+    fopen = open(r'E:\githubworkspace\EaseDine\DOM\rawData\spam.txt', 'r')
     neg = []
     for line in fopen:
         neg.append(line)
