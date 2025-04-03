@@ -1,0 +1,10 @@
+{
+  "model": {
+    "type": "paraformer",
+    "model_config": {
+      "asr_model_file": "model.pb",
+      "cmvn_file": "am.mvn",
+      "config_file": "config.yaml"
+    }
+  }
+}
