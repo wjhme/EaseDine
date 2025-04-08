@@ -13,7 +13,7 @@ from funasr import AutoModel
 # 新增模型路径配置
 MODEL_NAME = "damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch"
 MODEL_REVISION = "v2.0.4"
-MODEL_CACHE_DIR = os.path.expanduser("/mnt/disk/wjh23/EaseDine/ASR/model")  # 自定义模型缓存目录
+MODEL_CACHE_DIR = os.path.expanduser("/mnt/disk/wjh23/models/FunASR_model")  # 自定义模型缓存目录
 
 # 设置模型缓存环境变量（在文件开头添加）
 os.environ['MODELSCOPE_CACHE'] = MODEL_CACHE_DIR  # 强制指定缓存目录
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     # )
 
     # 单文件处理
-    input_path = "../audios/test2.wav"
+    input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio_batch_1/0a8a651b-c341-40ca-bd79-194c4a39bfb6.wav"
     main_process(input_path)
 
     '''

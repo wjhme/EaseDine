@@ -1,0 +1,14 @@
+部分语音是多通道：
+A_audio/72a4013c-0141-4350-a6cb-28577a0977cd.wav  2 取第一个通道
+train_audio/train_audio_batch_6/b0d2bde3-4aaa-4be1-8709-420a56f1d3dc.wav 5 前三个通道均可
+train_audio/train_audio_batch_6/afadff3f-4e28-4029-a679-592b980f4842.wav 2 两个通道均可
+
+
+A榜测试:
+识别不准确的音频:
+0e7f1d8b-2786-4bfb-8579-7173f692dfdb	天猫精灵要个鹿茸净小草吧
+8de1c21b-e5f5-471f-ab47-8e0115a97497	快一点给我们姐姐给我放大声一点
+9a477a8f-efb2-4911-bdef-2599f5e2b240	天猫精灵基数是双数还是单数
+51c55580-0b6b-4e21-a7c1-f454f49467b4	天猫精灵 EAT来碗热乎的山药排骨粥吧 (EAT 是打嗝声)
+c7563fb8-7d43-41a4-abc0-07847b061637	天猫精灵 LEVEL红枣核桃养胃粥吧 (LEVEL->来碗)
+28846702-87cd-48eb-bbbc-78012ec4d1b0	单臂 LYING自己胸椎的锻炼方式有哪些 (听不清)

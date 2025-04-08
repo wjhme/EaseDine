@@ -12,7 +12,7 @@ root_dir = cur_dir.parent.parent
 start_time = time.time()
 
 # 数据准备
-file_dir = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/train.txt"
+file_dir = f"/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/train.txt"
 X_train, X_test, y_train, y_test = prepare_data(file_dir)
 
 # 获取模型组件
@@ -67,4 +67,4 @@ stacking_model = {
     'base_models': base_models,  # 保存所有基模型
     'meta_model': meta_model     # 保存元模型
 }
-joblib.dump(stacking_model, f'{root_dir}/DOM/ML/model/stacking/stacking_model.pkl')
+joblib.dump(stacking_model, f'{root_dir}/DOM/ML/model/stacking_model.pkl')
