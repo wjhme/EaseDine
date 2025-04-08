@@ -86,10 +86,16 @@ class KaldifeatFbank:
         self.opts = opts
 
     def __call__(self, wav, is_train=False):
+
         if type(wav) is str:
             sample_rate, wav_np = kaldiio.load_mat(wav)
         elif type(wav) in [tuple, list] and len(wav) == 2:
             sample_rate, wav_np = wav
+
+        # 确保音频为单声道
+        if len(wav_np.shape) > 1:
+            # 如果是多声道，取第一个声道
+            wav_np = wav_np[:, 0]
 
         assert len(wav_np.shape) == 1
 
