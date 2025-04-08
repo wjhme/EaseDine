@@ -4,12 +4,16 @@ import numpy as np
 import joblib
 import time
 import sys
+from pathlib import Path
+cur_dir = Path(__file__).parent
+root_dir = cur_dir.parent.parent
 
 # 初始化计时
 start_time = time.time()
 
 # 数据准备
-X_train, X_test, y_train, y_test = prepare_data()
+file_dir = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/train.txt"
+X_train, X_test, y_train, y_test = prepare_data(file_dir)
 
 # 获取模型组件
 vectorizers = get_vectorizers()
@@ -55,7 +59,7 @@ meta_model.fit(X_meta_train, y_train)
 final_pred = meta_model.predict(X_meta_test)
 print("\n最终模型评估:")
 print(classification_report(y_test, final_pred))
-print(f"总耗时: {(time.time() - start_time)/60:.1f} 分")
+print(f"总耗时: {(time.time() - start_time):.1f} 秒")
 
 # 保存模型
 # 修改后的保存代码
@@ -63,35 +67,4 @@ stacking_model = {
     'base_models': base_models,  # 保存所有基模型
     'meta_model': meta_model     # 保存元模型
 }
-joblib.dump(stacking_model, 'model/stacking/stacking_model.pkl')
-
-
-''' 
-数据集信息:
-训练样本: 51696 | 测试样本: 12925
-正样本比例 - 训练集: 33.68% | 测试集: 33.68%
-prepare_data 内存使用: 131.68 MB
-
-训练基模型:
-bow_nb          | 准确率: 0.9390 | 耗时: 55.4s
-bow_svm         | 准确率: 0.9826 | 耗时: 61.6s
-tfidf_nb        | 准确率: 0.9515 | 耗时: 54.2s
-tfidf_svm       | 准确率: 0.9856 | 耗时: 56.3s
-hash_nb         | 准确率: 0.9912 | 耗时: 101.0s
-rf              | 准确率: 0.9673 | 耗时: 30.1s
-sgd             | 准确率: 0.9793 | 耗时: 22.6s
-
-训练元模型...
-
-最终模型评估:
-              precision    recall  f1-score   support
-
-           0       0.99      1.00      0.99      8572
-           1       0.99      0.99      0.99      4353
-
-    accuracy                           0.99     12925
-   macro avg       0.99      0.99      0.99     12925
-weighted avg       0.99      0.99      0.99     12925
-
-总耗时: 7.3 分
-'''
+joblib.dump(stacking_model, f'{root_dir}/DOM/ML/model/stacking/stacking_model.pkl')

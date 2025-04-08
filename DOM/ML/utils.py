@@ -1,14 +1,15 @@
-from DOM.NN.utils import loadfile
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.linear_model import SGDClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
+from sklearn.neural_network import MLPClassifier
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import RandomForestClassifier, StackingClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.utils import shuffle
 import numpy as np
+import pandas as pd
 import joblib
 import psutil
 
@@ -20,7 +21,7 @@ def memory_monitor(func):
         start_mem = process.memory_info().rss / 1024 ** 2
         result = func(*args, **kwargs)
         end_mem = process.memory_info().rss / 1024 ** 2
-        print(f"{func.__name__} 内存使用: {start_mem - end_mem:.2f} MB")
+        print(f"{func.__name__} 内存使用: {end_mem - start_mem:.2f} MB")
         return result
 
     return wrapper
@@ -28,28 +29,28 @@ def memory_monitor(func):
 
 # -------------------- 数据准备 --------------------
 @memory_monitor
-def prepare_data():
+def prepare_data(file_dir):
     """加载并预处理数据"""
-    texts, labels = loadfile()
-
+    df = pd.read_csv(file_dir, sep="\t")
+    df_shuffled = df.sample(frac=1, random_state=42)
     # 文本清洗（简单示例）
-    cleaned_texts = [text.lower().replace('\n', ' ') for text in texts]
+    # cleaned_texts = [text.lower().replace('\n', ' ') for text in texts]
 
     # 打乱并分割数据集
-    texts, labels = shuffle(cleaned_texts, labels, random_state=42)
-    X_train, X_test, y_train, y_test = train_test_split(
-        texts, labels,
-        test_size=0.2,
-        stratify=labels,
-        random_state=42
+    train_df, test_df = train_test_split(
+        df_shuffled, 
+        test_size=0.2,       # 测试集比例
+        # stratify=labels,
+        random_state=42      # 随机种子
     )
 
+    X_train, X_test, y_train, y_test = train_df['text'].tolist(), test_df['text'].tolist(), train_df['dom'].tolist(), test_df['dom'].tolist()
     # 数据集统计
     print("\n数据集信息:")
     print(f"训练样本: {len(X_train)} | 测试样本: {len(X_test)}")
     print(f"正样本比例 - 训练集: {np.mean(y_train):.2%} | 测试集: {np.mean(y_test):.2%}")
 
-    return X_train, X_test, np.array(y_train), np.array(y_test)
+    return X_train, X_test, y_train, y_test
 
 
 # -------------------- 特征工程配置 --------------------
@@ -130,13 +131,12 @@ def get_base_models(vectorizers):
 
 # -------------------- 元模型配置 --------------------
 def get_meta_model():
-    """配置最终的元模型"""
-    return LogisticRegression(
-        C=5,
-        solver='lbfgs',
-        max_iter=1000,
-        class_weight='balanced',
-        n_jobs=2
+    return MLPClassifier(
+        hidden_layer_sizes=(64, 32),
+        activation='relu',
+        solver='adam',
+        early_stopping=True,
+        random_state=42
     )
 
 
