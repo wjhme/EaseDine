@@ -20,19 +20,21 @@ os.environ['MODELSCOPE_CACHE'] = MODEL_CACHE_DIR  # 强制指定缓存目录
 os.environ['MODELSCOPE_HUB_CACHE'] = MODEL_CACHE_DIR
 # os.environ['MODELSCOPE_FILE_LOCK'] = os.path.join(MODEL_CACHE_DIR, '.file_lock')
 
-# 全局模型初始化（GPU优先）
-device = "cuda" if torch.cuda.is_available() else "cpu"
-torch.backends.cudnn.benchmark = True  # 启用CUDA加速
-t1 = time.time()
-model = AutoModel(
-    model=MODEL_NAME,
-    model_revision=MODEL_REVISION,
-    cache_dir=MODEL_CACHE_DIR,
-    disable_update=True,
-    device=device,
-    punc_config={"enable": True},  # 启用标点预测
-)
-print(f"load model time:{time.time() - t1:.2f} s")
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+# # 全局模型初始化（GPU优先）
+# device = "cuda" if torch.cuda.is_available() else "cpu"
+# torch.backends.cudnn.benchmark = True  # 启用CUDA加速
+# t1 = time.time()
+# model = AutoModel(
+#     model=MODEL_NAME,
+#     model_revision=MODEL_REVISION,
+#     cache_dir=MODEL_CACHE_DIR,
+#     disable_update=True,
+#     device=device,
+#     punc_config={"enable": False},  # 不启用标点预测
+# )
+# print(f"load model time:{time.time() - t1:.2f} s")
 
 def load_audio(audio_path, target_sr=16000):
     """音频加载与预处理（直接返回张量）"""
@@ -70,9 +72,7 @@ def asr_pipeline(waveform, sample_rate):
         waveform_np = waveform.squeeze().numpy()  # 去除通道维度
         
         # 执行识别（假设模型支持numpy输入）
-        t1 = time.time()
         result = model.generate(input=waveform_np, sample_rate=sample_rate)
-        print(f"执行识别：{time.time() - t1:.2f} s")
 
         if len(result) > 0 and "text" in result[0]:
             return result[0]["text"]
@@ -153,25 +153,25 @@ def batch_process(input_path, output_file="results.csv"):
     
     for idx, audio_file in enumerate(audio_files, 1):
         print(f"\n处理进度: {idx}/{total_count}")
-        print("当前文件:", audio_file)
+        # print("当前文件:", audio_file)
         
         result = process_single_file(audio_file)
         results.append(result)
         
         if result["status"] == "success":
             success_count += 1
-            print(f"识别结果: {result['text']}")
+            # print(f"识别结果: {result['text']}")
         else:
             print(f"识别失败: {result['text']}")
         
-        print(f"处理耗时: {result['duration']:.2f}s")
+        print(f"识别耗时: {result['duration']:.2f}s")
         print("-" * 60)
 
     # 保存结果
     with open(output_file, "w", encoding="utf-8") as f:
-        f.write("文件路径,识别结果,处理时间(秒),状态\n")
+        f.write("文件路径,识别结果,处理时间(秒)\n")
         for res in results:
-            f.write(f"{res['file']},{res['text']},{res['duration']:.2f},{res['status']}\n")
+            f.write(f"{res['file']},{res['text']},{res['duration']:.2f}\n")
     
     # 打印统计信息
     print("\n" + "="*60)
@@ -185,15 +185,24 @@ if __name__ == "__main__":
         torch.cuda.empty_cache()
     
     # # 批处理
-    # input_path = "../audios"  # 替换为你的音频文件/目录路径
+    # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"  # 替换为你的音频文件/目录路径
     # batch_process(
     #     input_path=input_path,
-    #     output_file="results/asr_results.csv"
+    #     output_file="FunASR_train_audio_batch_1.txt"
     # )
 
-    # 单文件处理
-    input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio_batch_1/0a8a651b-c341-40ca-bd79-194c4a39bfb6.wav"
-    main_process(input_path)
+    import pandas as pd
+    # 提取语音编号
+    df = pd.read_csv("FunASR_train_audio_batch_1.txt", sep=",")
+    df.columns = ['uuid','text','time','status']
+    df['uuid_temp'] = df['uuid'].str.extract(r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})')
+    df['uuid'] = df["uuid_temp"]
+    df.drop(['uuid_temp','status'],axis=1,inplace=True)
+    df.to_csv("FunASR_train_audio_batch_11.txt",sep="\t",index=False)
+
+    # # 单文件处理
+    # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio_batch_1/0a8a651b-c341-40ca-bd79-194c4a39bfb6.wav"
+    # main_process(input_path)
 
     '''
     load model time:4.20 s
