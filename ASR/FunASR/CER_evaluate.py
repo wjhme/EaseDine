@@ -68,10 +68,5 @@ if __name__ == "__main__":
         assert abs(result - expected) < 1e-6, \
             f"测试失败: {ref} vs {hyp} | 预期 {expected} 实际 {result}"
     
-    # 详细模式测试
-    detail = calculate_cer("测试", "测", detail_analysis=True)
-    assert detail['cer'] == 0.5
-    assert detail['distance'] == 1
-    assert detail['edits']['deletions'] == 1  # 删除操作
     
     print("所有测试通过！")

@@ -18,7 +18,7 @@ ROOT_DIR = CUR_DIR.parent.parent.parent
 # 配置路径
 PRETRAINED_MODEL_PATH = f"{ROOT_DIR}/models/FireRedASR_pretrained_model/FireRedASR-AED-L"
 DATA_DIR = f"{ROOT_DIR}/EaseDineDatasets"  # 包含音频和标注文件的目录
-TRAIN_AUDIO_DIRS = f"{DATA_DIR}/A_audio"
+TRAIN_AUDIO_DIRS = f"{DATA_DIR}/train_audio/train_audio_batch_1" 
 
 # 准备数据
 batch_uttid, batch_wav_path = load_pred_data(TRAIN_AUDIO_DIRS)
@@ -27,7 +27,7 @@ batch_uttid, batch_wav_path = load_pred_data(TRAIN_AUDIO_DIRS)
 model = FireRedAsr.from_pretrained("aed", PRETRAINED_MODEL_PATH)
 
 # 定义批量大小
-BATCH_SIZE = 64  # 根据 GPU 内存调整批量大小
+BATCH_SIZE = 128  # 根据 GPU 内存调整批量大小
 
 # 批量处理音频文件
 all_results = []
@@ -66,4 +66,4 @@ total_time = time.time() - t0
 print(f"\n所有音频文件处理完成！总用时：{total_time:.2f} s，推理用时：{total_elapsed:.2f} s")
 
 # 保存结果到文件
-save_results_to_txt(all_results, f"{DATA_DIR}/pred_A_audio.txt")
+save_results_to_txt(all_results, "FireRed_train_audio_batch_1.txt")
