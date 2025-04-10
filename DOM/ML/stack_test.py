@@ -11,7 +11,7 @@ root_dir = cur_dir.parent.parent.parent
 
 # 加载测试数据
 test_file_path = f"{root_dir}/EaseDineDatasets/pred_A_audio.txt"
-data = pd.read_csv(test_file_path, sep="\t", header=None, names=["uttid", "text"])
+data = pd.read_csv(test_file_path, sep="\t", header=None, names=["uuid", "text"])
 
 # 提取测试文本
 X_test = data["text"].tolist()

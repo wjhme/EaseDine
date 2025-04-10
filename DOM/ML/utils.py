@@ -286,3 +286,42 @@ def load_model(path):
     except Exception as e:
         print(f"❌ 模型加载失败: {str(e)}")
         return None
+    
+def based_on_keywords(data_df):
+    '''
+              text                  dom     dom_test
+    番茄炖鸡胸与藜麦需要用什么材料      0         1
+    天猫精灵讲讲讲个小番茄的故事        0         1
+    番茄煎鸡胸和什么主食搭配            0         1
+    瘦肉粥与清炒时蔬需要剥皮吗          0         1
+    瘦肉粥与清炒时蔬对减脂有帮助吗       0         1
+    '''
+    # 定义点餐关键词列表
+    pos_keywords = ['来碗', '来份', '要碗', '来一份', '要份', "要个", "养胃", "热乎"]
+    
+    # 定义非点餐关键词列表
+    neg_keywords = ['播放', '等于', '声音', '音量', '乘以', "多少", "音乐", "除以", "歌曲", "打开"]
+    
+    # 创建临时列
+    pos_match = data_df['text'].str.contains('|'.join(pos_keywords))
+    neg_match = data_df['text'].str.contains('|'.join(neg_keywords))
+    
+    # 初始化全部为 -1
+    data_df['dom_key'] = -1
+    
+    # 仅包含 pos_keywords 的记为 1
+    data_df.loc[pos_match & ~neg_match, 'dom_key'] = 1
+    
+    # 仅包含 neg_keywords 的记为 0
+    data_df.loc[~pos_match & neg_match, 'dom_key'] = 0
+    
+    # 同时包含 pos 和 neg 的保持 -1（无需额外操作，因为初始值已经是-1）
+
+    return data_df
+
+if __name__=="__main__":
+    # 加载测试数据
+    test_file_path = f"/mnt/disk/wjh23/EaseDineDatasets/pred_A_audio.txt"
+    data = pd.read_csv(test_file_path, sep="\t", header=None, names=["uuid", "text"])
+    data = based_on_keywords(data)
+    data.to_csv("/mnt/disk/wjh23/EaseDineDatasets/pred_A_audio_keyword.txt", sep="\t", header=None, index=None)
