@@ -5,8 +5,8 @@ Python包兼容性：
 ```python=3.10
 
 numpy==1.24.3
-
-
+Cython==3.0.12
+gensim==4.3.3
 ```
 ## ASR
 1. FireRedASR

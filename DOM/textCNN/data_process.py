@@ -2,7 +2,7 @@ import torch
 from TextCNN import TextCNN
 import pandas as pd
 import torch.nn as nn
-from utils import get_tokenized, get_vocab, process_data, data_iterator, shuffl_split_data
+from EaseDine.DOM.utils import get_tokenized, get_vocab, process_data, data_iterator, shuffl_split_data
 
 df = pd.read_csv("../train.txt",sep="\t")
 # 分词处理
