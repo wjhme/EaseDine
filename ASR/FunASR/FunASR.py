@@ -2,7 +2,6 @@
 import os
 import torch
 import time
-import shutil
 import torchaudio
 from pathlib import Path
 from IPython.display import Audio, display
@@ -18,23 +17,21 @@ MODEL_CACHE_DIR = os.path.expanduser("/mnt/disk/wjh23/models/FunASR_model")  # �
 # 设置模型缓存环境变量（在文件开头添加）
 os.environ['MODELSCOPE_CACHE'] = MODEL_CACHE_DIR  # 强制指定缓存目录
 os.environ['MODELSCOPE_HUB_CACHE'] = MODEL_CACHE_DIR
-# os.environ['MODELSCOPE_FILE_LOCK'] = os.path.join(MODEL_CACHE_DIR, '.file_lock')
-
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-# # 全局模型初始化（GPU优先）
-# device = "cuda" if torch.cuda.is_available() else "cpu"
-# torch.backends.cudnn.benchmark = True  # 启用CUDA加速
-# t1 = time.time()
-# model = AutoModel(
-#     model=MODEL_NAME,
-#     model_revision=MODEL_REVISION,
-#     cache_dir=MODEL_CACHE_DIR,
-#     disable_update=True,
-#     device=device,
-#     punc_config={"enable": False},  # 不启用标点预测
-# )
-# print(f"load model time:{time.time() - t1:.2f} s")
+# 全局模型初始化（GPU优先）
+device = "cuda" if torch.cuda.is_available() else "cpu"
+torch.backends.cudnn.benchmark = True  # 启用CUDA加速
+t1 = time.time()
+model = AutoModel(
+    model=MODEL_NAME,
+    model_revision=MODEL_REVISION,
+    cache_dir=MODEL_CACHE_DIR,
+    disable_update=True,
+    device=device,
+    punc_config={"enable": False},  # 不启用标点预测
+)
+print(f"load model time:{time.time() - t1:.2f} s")
 
 def load_audio(audio_path, target_sr=16000):
     """音频加载与预处理（直接返回张量）"""
@@ -133,7 +130,7 @@ def process_single_file(audio_file, display_detail=False):
             "status": "failed"
         }
 
-def batch_process(input_path, output_file="results.csv"):
+def batch_process(input_path, output_file="results.txt"):
     """批量处理主函数"""
     # 获取文件列表
     if os.path.isdir(input_path):
@@ -143,6 +140,8 @@ def batch_process(input_path, output_file="results.csv"):
         audio_files = [input_path]
     else:
         raise ValueError("无效的输入路径")
+
+    import pandas as pd
 
     # 执行批量识别
     results = []
@@ -167,11 +166,24 @@ def batch_process(input_path, output_file="results.csv"):
         print(f"识别耗时: {result['duration']:.2f}s")
         print("-" * 60)
 
-    # 保存结果
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write("文件路径,识别结果,处理时间(秒)\n")
-        for res in results:
-            f.write(f"{res['file']},{res['text']},{res['duration']:.2f}\n")
+    # 创建DataFrame并重命名列
+    df = pd.DataFrame(results)
+    df.rename(columns={
+        'file': 'uuid',
+        'duration': 'time',
+        'text': 'text',
+        'status': 'status'
+    }, inplace=True)
+
+    # 从uuid列提取语音编号
+    df['uuid_temp'] = df['uuid'].str.extract(r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})')
+
+    # 更新uuid列并删除临时列
+    df['uuid'] = df['uuid_temp']
+    df.drop(['uuid_temp', 'status'], axis=1, inplace=True)
+
+    # 保存为制表符分隔文件
+    df.to_csv(output_file, sep="\t", index=False)
     
     # 打印统计信息
     print("\n" + "="*60)
@@ -184,21 +196,12 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     
-    # # 批处理
-    # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"  # 替换为你的音频文件/目录路径
-    # batch_process(
-    #     input_path=input_path,
-    #     output_file="FunASR_train_audio_batch_1.txt"
-    # )
-
-    import pandas as pd
-    # 提取语音编号
-    df = pd.read_csv("FunASR_train_audio_batch_1.txt", sep=",")
-    df.columns = ['uuid','text','time','status']
-    df['uuid_temp'] = df['uuid'].str.extract(r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})')
-    df['uuid'] = df["uuid_temp"]
-    df.drop(['uuid_temp','status'],axis=1,inplace=True)
-    df.to_csv("FunASR_train_audio_batch_11.txt",sep="\t",index=False)
+    # 批处理
+    input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"  # 替换为你的音频文件/目录路径
+    batch_process(
+        input_path=input_path,
+        output_file="FunASR_train_audio_batch_1.txt"
+    )
 
     # # 单文件处理
     # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio_batch_1/0a8a651b-c341-40ca-bd79-194c4a39bfb6.wav"
