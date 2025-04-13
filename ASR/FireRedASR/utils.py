@@ -50,19 +50,45 @@ def load_pred_data(pred_audio):
 
 def save_results_to_txt(results, output_file):
     """
-    将 results 列表中的 uttid 和 text 保存为 txt 文件
+    将 results 列表中的 uttid 和 text 保存为 txt 文件(按官方uuid顺序调整)
     :param results: 包含识别结果的列表，每个元素是一个字典
     :param output_file: 输出文件路径
     """
-    with open(output_file, "w", encoding="utf-8") as f:
-        for result in results:
-            uttid = result["uttid"]
-            text = result["text"]
-            # 删除 空格、字母
-            text = re.sub(r'[\sA-Za-z]', '', text)
-            
-            # 写入格式：uttid 文本标注
-            f.write(f"{uttid}\t{text}\n")
+    # 官方提交文档
+    A_df = pd.read_csv("/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/A.txt",sep="\t")[['uuid']]
+
+    # 将原始结果列表转换为DataFrame
+    df = pd.DataFrame(results)[["uttid", "text"]]  # 明确指定需要保留的列
+    df = df.rename(columns={
+        "uttid": "uuid", 
+        "text": "text"
+    })
+
+    # 定义替换规则字典（左边为需要替换的词，右边为目标词）
+    replacement_rules = {
+        '要往': '要碗',
+        '来问': '来碗',
+        '来玩': '来碗',
+        '要玩': '要碗',
+        '小草': '小炒'
+    }
+
+    # 生成正则表达式模式（按关键词长度降序排列，避免短词优先匹配）
+    patterns = sorted(replacement_rules.keys(), key=len, reverse=True)
+    regex_pattern = re.compile('|'.join(map(re.escape, patterns)))
+
+    df['text'] = df['text'].str.replace(regex_pattern, lambda x: replacement_rules[x.group()], regex=True)
+
+    # 删除字母、空格、标点符号
+    # df["text"] = df["text"].str.replace(r'[\sA-Za-z，。？！,.?!]', '', regex=True)
+    # 只保留中文
+    df["text"] = df["text"].str.replace(r'[^\u4e00-\u9fa5]', '', regex=True) 
+
+    # 处理uuid顺序
+    sorted_df = A_df.merge(df, on='uuid', how='left')
+
+    # 按比赛提交顺序保存识别结果
+    sorted_df.to_csv(output_file, sep="\t", index=False, header=None)
     print(f"结果已保存到 {output_file}")
 
 def get_folderames(path):
@@ -140,3 +166,8 @@ def merge_txt_files_to_dataframe(file_list, base_path="/mnt/disk/wjh23/FunASR/fi
     print(f"总共有 {merged_df.shape[0]} 条数据.")
     
     return merged_df
+
+if __name__=="__main__":
+    results = pd.read_csv("/mnt/disk/wjh23/EaseDine/ASR/FireRedASR/A_audio_results/FireRed_A_audio_beam_size_5.txt", sep="\t", header=None, names=["uttid", "text"])
+    results_ls = results.to_dict('records')
+    save_results_to_txt(results_ls, "/mnt/disk/wjh23/EaseDine/ASR/FireRedASR/A_audio_results/FireRed_A_audio_beam_size_5_new.txt")
