@@ -1,0 +1,54 @@
+nohup: 忽略输入
+Empty DataFrame
+Columns: [uuid, pred_text]
+Index: []
+cer==0 的音频数量：4693
+train_audio_batch_1 数据集 CER 得分:0.8571
+
+Empty DataFrame
+Columns: [uuid, pred_text]
+Index: []
+cer==0 的音频数量：4615
+train_audio_batch_3 数据集 CER 得分:0.8540
+
+Empty DataFrame
+Columns: [uuid, pred_text]
+Index: []
+cer==0 的音频数量：4452
+train_audio_batch_7 数据集 CER 得分:0.8467
+
+Empty DataFrame
+Columns: [uuid, pred_text]
+Index: []
+cer==0 的音频数量：4672
+train_audio_batch_8 数据集 CER 得分:0.8594
+
+Empty DataFrame
+Columns: [uuid, pred_text]
+Index: []
+cer==0 的音频数量：4566
+train_audio_batch_2 数据集 CER 得分:0.8557
+
+                                      uuid pred_text
+9563  710cdf58-31ac-43c2-89e1-7fe836a940a8       NaN
+cer==0 的音频数量：4637
+train_audio_batch_4 数据集 CER 得分:0.8556
+
+Empty DataFrame
+Columns: [uuid, pred_text]
+Index: []
+cer==0 的音频数量：9
+train_audio_batch_9 数据集 CER 得分:0.8517
+
+Empty DataFrame
+Columns: [uuid, pred_text]
+Index: []
+cer==0 的音频数量：4652
+train_audio_batch_6 数据集 CER 得分:0.8603
+
+Empty DataFrame
+Columns: [uuid, pred_text]
+Index: []
+cer==0 的音频数量：4548
+train_audio_batch_5 数据集 CER 得分:0.8534
+

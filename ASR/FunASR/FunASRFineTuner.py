@@ -54,28 +54,21 @@ class FunASRFineTuner(FunASRProcessor):
 
         with open(data_dir / "wav.scp", "w") as f:
             for idx, audio in enumerate(audio_files, 1):
-                utt_id = f"utt_{idx:05d}"  # 生成5位数字编号
-                f.write(f"{utt_id} {audio.absolute()}\n")
+                uuid = f"{str(audio.absolute())[-40:-4]}"  
+                f.write(f"{uuid} {audio.absolute()}\n")
 
     def _generate_text_file(self, data_dir: Path):
         """自动生成text.txt文件（需存在原始标注）"""
-        raw_text = data_dir / "transcript.txt"
+        raw_text = Path("/mnt/disk/wjh23/EaseDineDatasets/train_audio/transcript.txt")
         if not raw_text.exists():
             raise FileNotFoundError(f"未找到原始标注文件: {raw_text}")
 
-        print(f"生成清洗后的文本文件: {data_dir / 'text.txt'}")
-        with open(raw_text) as fin, open(data_dir / "text.txt", "w") as fout:
-            for line in fin:
-                # 文本清洗：去除非中文字符
-                cleaned = self._clean_text(line.strip())
-                fout.write(f"{cleaned}\n")
-
-    def _clean_text(self, text: str) -> str:
-        """文本清洗（处理实战中的特殊字符问题）"""
-        # 保留中文、数字、常用标点
-        import re
-        cleaned = re.sub(r"[^\u4e00-\u9fa5a-zA-Z0-9，。？、！]", "", text)
-        return cleaned.strip()
+        print(f"对应的文本文件: {data_dir / 'text.txt'}")
+        import pandas as pd
+        scp = pd.read_csv(data_dir / "wav.scp",sep=" ",names=['uuid','dir'])
+        raw = pd.read_csv(raw_text,sep="\t", names=['uuid','text'])
+        text = scp.merge(raw, on='uuid', how='left')[['uuid','text']]
+        text.to_csv(data_dir / 'text.txt',sep=" ",index=False,header=None)
 
     def _auto_detect_batch_size(self) -> int:
         """智能batch_size检测（根据显存容量）"""
@@ -104,6 +97,7 @@ class FunASRFineTuner(FunASRProcessor):
             print(f"- CUDA版本: {torch.version.cuda}")
             print(f"- 当前GPU: {torch.cuda.get_device_name(0)}")
 
+        print(f"- batch_size：{self.batch_size}")
         # 显存警告
         if self.device == "cuda" and self.batch_size > 32:
             print("\n警告：batch_size超过32可能导致显存不足！")
@@ -189,3 +183,254 @@ class FunASRFineTuner(FunASRProcessor):
         """保存微调后的模型"""
         self.model.save_pretrained(save_path)
         print(f"模型已保存至: {save_path}")
+
+
+# # funasr_finetune.py
+# import os
+# import torch
+# import logging
+# from pathlib import Path
+# from omegaconf import OmegaConf
+# from funasr import AutoModel
+# from funasr.train_utils.trainer import Trainer
+
+# class FunASRFinetuner:
+#     """基于官方训练脚本的微调封装类"""
+    
+#     def __init__(self, 
+#                  train_data: str,
+#                  valid_data: str = None,
+#                  pretrained_name: str = "damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch",
+#                  output_dir: str = "./finetune_models"):
+#         """
+#         参数说明：
+#         train_data: 训练数据目录路径（需含wav文件和transcript.txt）
+#         valid_data: 验证数据目录路径（可选）
+#         pretrained_name: 预训练模型名称或路径
+#         output_dir: 微调输出目录
+#         """
+#         self.train_data = Path(train_data)
+#         self.valid_data = Path(valid_data) if valid_data else None
+#         self.pretrained_name = pretrained_name
+#         self.output_dir = Path(output_dir)
+        
+#         # 环境初始化
+#         self._setup_environment()
+#         self._prepare_data_files()
+        
+#         # 自动配置参数
+#         self.config = self._build_config()
+
+#         print("数据集路径验证:")
+#         print(f"训练路径: {self.train_data}")
+#         print(f"SCP文件存在: {(self.train_data/'wav.scp').exists()}")
+#         print(f"Text文件存在: {(self.train_data/'text.txt').exists()}")
+#         print(f"音频文件数量: {len(list(self.train_data.glob('*.wav')))}\n")
+        
+#     def _setup_environment(self):
+#         """初始化训练环境"""
+#         torch.backends.cudnn.deterministic = True
+#         self.local_rank = int(os.environ.get("LOCAL_RANK", 0))
+#         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        
+#         # 创建输出目录
+#         self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+#     def _prepare_data_files(self):
+#         """准备训练所需的数据清单文件"""
+#         for data_dir in [self.train_data, self.valid_data]:
+#             if data_dir and data_dir.exists():
+#                 self._generate_scp_file(data_dir)
+#                 self._generate_text_file(data_dir)
+                
+#     def _generate_scp_file(self, data_dir: Path):
+#         """生成wav.scp文件"""
+#         scp_path = data_dir / "wav.scp"
+#         if not scp_path.exists():
+#             with open(scp_path, "w") as f:
+#                 for wav_file in data_dir.glob("*.wav"):
+#                     f.write(f"{wav_file.stem} {wav_file.name}\n")
+                    
+#     def _generate_text_file(self, data_dir: Path):
+#         """生成text.txt文件"""
+#         text_path = data_dir / "text.txt"
+#         if not text_path.exists():
+#             # 假设存在原始标注文件transcript.txt
+#             raw_text = Path("/mnt/disk/wjh23/EaseDineDatasets/train_audio/transcript.txt")
+#             if raw_text.exists():
+#                 import pandas as pd
+#                 scp = pd.read_csv(data_dir / "wav.scp",sep=" ",names=['uuid','dir'])
+#                 raw = pd.read_csv(raw_text,sep="\t", names=['uuid','text'])
+#                 text = scp.merge(raw, on='uuid', how='left')[['uuid','text']]
+#                 text.to_csv(data_dir / 'text.txt',sep=" ",index=False,header=None)
+#             else:
+#                 raise FileNotFoundError(f"未找到原始标注文件: {raw_text}")
+
+#     def _build_config(self) -> OmegaConf:
+#         """构建Hydra配置"""
+#         config = OmegaConf.create({
+#             "model": self.pretrained_name,
+#             "dataset_conf": {
+#                 "train_data": str(self.train_data),
+#                 "valid_data": str(self.valid_data) if self.valid_data else None,
+#                 "tokenizer": None,  # 占位符，将在运行时填充
+#                 "frontend": None,   # 占位符，将在运行时填充
+#                 "batch_size": self._auto_batch_size(),
+#                 "num_workers": 4
+#             },
+#             "optim": "adam",
+#             "optim_conf": {
+#                 "lr": 1e-4,
+#                 "weight_decay": 0.0
+#             },
+#             "scheduler": "warmuplr",
+#             "scheduler_conf": {
+#                 "warmup_steps": 5000
+#             },
+#             "train_conf": {
+#                 "output_dir": str(self.output_dir),
+#                 "max_epochs": 10,
+#                 "save_interval": 1,
+#                 "use_fp16": torch.cuda.is_available()
+#             }
+#         })
+#         return config
+    
+#     def _auto_batch_size(self) -> int:
+#         """自动计算安全batch_size"""
+#         if self.device == "cpu":
+#             return 8
+        
+#         torch.cuda.empty_cache()
+#         free_mem = torch.cuda.get_device_properties(0).total_memory - torch.cuda.memory_allocated(0)
+#         return int(free_mem / (512 * 1024 * 1024))  # 按512MB/样本估算
+
+#     def run(self):
+#         """执行微调流程"""
+#         # 初始化模型
+#         model = AutoModel(
+#             model=self.pretrained_name,
+#             # 显式传递tokenizer和frontend参数
+#             tokenizer_type="whisper_en" if "en" in self.pretrained_name else "zh",
+#             frontend_type="fbank",
+#             device=self.device
+#         )
+#         # 从model.kwargs获取相关组件
+#         tokenizer = model.kwargs["tokenizer"]
+#         frontend = model.kwargs["frontend"]
+        
+#         # 构建训练组件
+#         train_components = self._build_train_components(model)
+        
+#         # 启动训练循环
+#         self._train_loop(**train_components)
+
+#     def _build_train_components(self, model):
+#         """构建训练所需组件"""
+
+#         # 获取必要组件
+#         tokenizer = model.kwargs["tokenizer"]
+#         frontend = model.kwargs["frontend"]
+
+#         # 初始化数据集时传递这些组件
+#         self.config.dataset_conf.update({
+#             "tokenizer": tokenizer,
+#             "frontend": frontend
+#         })
+#         # 模型参数冻结示例（冻结编码器）
+#         for name, param in model.model.named_parameters():
+#             if "encoder" in name:
+#                 param.requires_grad = False
+
+#         # 优化器
+#         optimizer = torch.optim.AdamW(
+#             filter(lambda p: p.requires_grad, model.model.parameters()),
+#             **self.config.optim_conf
+#         )
+
+#         # 学习率调度器
+#         scheduler = torch.optim.lr_scheduler.LambdaLR(
+#             optimizer, 
+#             lr_lambda=lambda step: min(step / 5000, 1.0)
+#         )
+
+#         # 训练器
+#         trainer = Trainer(
+#             local_rank=self.local_rank,
+#             device=self.device,
+#             **self.config.train_conf
+#         )
+
+#         return {
+#             "model": model.model,
+#             "optimizer": optimizer,
+#             "scheduler": scheduler,
+#             "trainer": trainer
+#         }
+
+#     def _train_loop(self, model, optimizer, scheduler, trainer):
+#         """训练循环"""
+#         # 数据加载（需根据实际数据集类实现）
+#         from funasr.datasets.audio_datasets.datasets import  AudioDataset
+        
+#         # 从配置中获取组件
+#         tokenizer = self.config.dataset_conf.tokenizer
+#         frontend = self.config.dataset_conf.frontend
+        
+#         train_set = AudioDataset(
+#             path=str(self.train_data),
+#             scp_file="wav.scp",
+#             text_file="text.txt",
+#             tokenizer=tokenizer,
+#             frontend=frontend
+#         )
+        
+#         valid_set = AudioDataset(
+#             scp_file=str(self.valid_data / "wav.scp"),
+#             text_file=str(self.valid_data / "text.txt")
+#         ) if self.valid_data else None
+
+#         # 训练循环
+#         for epoch in range(trainer.max_epochs):
+#             # 训练阶段
+#             trainer.train_epoch(
+#                 model=model,
+#                 optim=optimizer,
+#                 scheduler=scheduler,
+#                 dataloader_train=train_set,
+#                 epoch=epoch
+#             )
+            
+#             # 验证阶段
+#             if valid_set:
+#                 trainer.validate_epoch(
+#                     model=model,
+#                     dataloader_val=valid_set,
+#                     epoch=epoch
+#                 )
+            
+#             # 保存检查点
+#             if self.local_rank == 0:
+#                 trainer.save_checkpoint(
+#                     epoch + 1,
+#                     model=model,
+#                     optim=optimizer,
+#                     scheduler=scheduler
+#                 )
+
+# if __name__ == "__main__":
+#     # 使用示例
+#     finetuner = FunASRFinetuner(
+#         train_data="/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_2",
+#         valid_data=None,
+#         pretrained_name="/mnt/disk/wjh23/models/FunASR_model/models/damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch",
+#         output_dir="/mnt/disk/wjh23/models/FunASR_model/finetuner_models"
+#     )
+#     finetuner.run()
+
+if __name__=="__main__":
+    train_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_2"
+    FT = FunASRFineTuner(train_path)
+    # FT.train()
+    # save_path = "/mnt/disk/wjh23/models/FunASR_model/finetuner_models"
+    # FT.save_model(save_path)
