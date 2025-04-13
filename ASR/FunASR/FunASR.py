@@ -52,9 +52,13 @@ def load_audio(audio_path, target_sr=16000):
             waveform = resampler(waveform)
             sample_rate = target_sr
 
-        # 确保单声道，兼容模型输入
+        # # 确保单声道，兼容模型输入
+        # if waveform.shape[0] > 1:
+        #     waveform = waveform.mean(dim=0, keepdim=True)
+
+        # 确保单声道，使用第一个通道
         if waveform.shape[0] > 1:
-            waveform = waveform.mean(dim=0, keepdim=True)
+            waveform = waveform[0:1]  # 取第一个通道并保持维度
 
         return waveform, sample_rate
 
@@ -200,7 +204,7 @@ if __name__ == "__main__":
     input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"  # 替换为你的音频文件/目录路径
     batch_process(
         input_path=input_path,
-        output_file="FunASR_train_audio_batch_1.txt"
+        output_file="FunASR_train_audio_batch_1_channel_1.txt"
     )
 
     # # 单文件处理

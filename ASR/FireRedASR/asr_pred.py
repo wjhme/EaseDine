@@ -10,6 +10,7 @@ torch.cuda.empty_cache()
 # 设置 CUDA 内存分配策略
 import os
 os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:128'
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 # 获取当前路径和根目录
 CUR_DIR = Path(__file__).parent
@@ -18,7 +19,8 @@ ROOT_DIR = CUR_DIR.parent.parent.parent
 # 配置路径
 PRETRAINED_MODEL_PATH = f"{ROOT_DIR}/models/FireRedASR_pretrained_model/FireRedASR-AED-L"
 DATA_DIR = f"{ROOT_DIR}/EaseDineDatasets"  # 包含音频和标注文件的目录
-TRAIN_AUDIO_DIRS = f"{DATA_DIR}/train_audio/train_audio_batch_1" 
+# TRAIN_AUDIO_DIRS = f"{DATA_DIR}/train_audio/train_audio_batch_1" 
+TRAIN_AUDIO_DIRS = f"{DATA_DIR}/A_audio" 
 
 # 准备数据
 batch_uttid, batch_wav_path = load_pred_data(TRAIN_AUDIO_DIRS)
@@ -45,7 +47,7 @@ for i in range(0, len(batch_uttid), BATCH_SIZE):
         sub_batch_wav_path,
         {
             "use_gpu": 1,
-            "beam_size": 3,
+            "beam_size": 5,
             "nbest": 1,
             "decode_max_len": 0,
             "softmax_smoothing": 1.0,
@@ -63,7 +65,7 @@ for i in range(0, len(batch_uttid), BATCH_SIZE):
 
 # 计算总耗时
 total_time = time.time() - t0
-print(f"\n所有音频文件处理完成！总用时：{total_time:.2f} s，推理用时：{total_elapsed:.2f} s")
+print(f"\n所有音频文件处理完成！总用时：{total_time/60:.2f} min，推理用时：{total_elapsed/60:.2f} min")
 
 # 保存结果到文件
-save_results_to_txt(all_results, "FireRed_train_audio_batch_1.txt")
+save_results_to_txt(all_results, "A_audio_results/FireRed_A_audio_beam_size_5.txt")

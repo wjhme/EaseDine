@@ -1,0 +1,145 @@
+nohup: 忽略输入
+==================== 处理数据集:train_audio_batch_1 ====================
+model args: Namespace(blank='<blank>', pad='<pad>', sos='<sos>', eos='<eos>', input_length_max=60.0, input_length_min=0.1, output_length_max=250, output_length_min=1, idim=80, odim=7832, n_layers_enc=16, n_head=20, d_model=1280, d_inner=5120, residual_dropout=0.1, pe_maxlen=5000, dropout_rate=0.1, kernel_size=33, n_layers_dec=16, unk='<unk>', blank_id=0, sos_id=3, eos_id=4, pad_id=2)
+load model time:10.54 s
+已处理 1000 / 9815 个音频文件
+已处理 2000 / 9815 个音频文件
+已处理 3000 / 9815 个音频文件
+已处理 4000 / 9815 个音频文件
+已处理 5000 / 9815 个音频文件
+已处理 6000 / 9815 个音频文件
+已处理 7000 / 9815 个音频文件
+已处理 8000 / 9815 个音频文件
+已处理 9000 / 9815 个音频文件
+
+所有音频文件处理完成！总用时：56.02 min，推理用时：51.50 min
+结果已保存到 /mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/FireRed_train_audio_batch_1.txt
+
+============================================================
+==================== 处理数据集:train_audio_batch_3 ====================
+model args: Namespace(blank='<blank>', pad='<pad>', sos='<sos>', eos='<eos>', input_length_max=60.0, input_length_min=0.1, output_length_max=250, output_length_min=1, idim=80, odim=7832, n_layers_enc=16, n_head=20, d_model=1280, d_inner=5120, residual_dropout=0.1, pe_maxlen=5000, dropout_rate=0.1, kernel_size=33, n_layers_dec=16, unk='<unk>', blank_id=0, sos_id=3, eos_id=4, pad_id=2)
+load model time:15.48 s
+已处理 1000 / 9751 个音频文件
+已处理 2000 / 9751 个音频文件
+已处理 3000 / 9751 个音频文件
+已处理 4000 / 9751 个音频文件
+已处理 5000 / 9751 个音频文件
+已处理 6000 / 9751 个音频文件
+已处理 7000 / 9751 个音频文件
+已处理 8000 / 9751 个音频文件
+已处理 9000 / 9751 个音频文件
+
+所有音频文件处理完成！总用时：59.99 min，推理用时：55.56 min
+结果已保存到 /mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/FireRed_train_audio_batch_3.txt
+
+============================================================
+==================== 处理数据集:train_audio_batch_7 ====================
+model args: Namespace(blank='<blank>', pad='<pad>', sos='<sos>', eos='<eos>', input_length_max=60.0, input_length_min=0.1, output_length_max=250, output_length_min=1, idim=80, odim=7832, n_layers_enc=16, n_head=20, d_model=1280, d_inner=5120, residual_dropout=0.1, pe_maxlen=5000, dropout_rate=0.1, kernel_size=33, n_layers_dec=16, unk='<unk>', blank_id=0, sos_id=3, eos_id=4, pad_id=2)
+load model time:25.63 s
+已处理 1000 / 9720 个音频文件
+已处理 2000 / 9720 个音频文件
+已处理 3000 / 9720 个音频文件
+已处理 4000 / 9720 个音频文件
+已处理 5000 / 9720 个音频文件
+已处理 6000 / 9720 个音频文件
+已处理 7000 / 9720 个音频文件
+已处理 8000 / 9720 个音频文件
+已处理 9000 / 9720 个音频文件
+
+所有音频文件处理完成！总用时：61.54 min，推理用时：57.06 min
+结果已保存到 /mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/FireRed_train_audio_batch_7.txt
+
+============================================================
+==================== 处理数据集:train_audio_batch_8 ====================
+model args: Namespace(blank='<blank>', pad='<pad>', sos='<sos>', eos='<eos>', input_length_max=60.0, input_length_min=0.1, output_length_max=250, output_length_min=1, idim=80, odim=7832, n_layers_enc=16, n_head=20, d_model=1280, d_inner=5120, residual_dropout=0.1, pe_maxlen=5000, dropout_rate=0.1, kernel_size=33, n_layers_dec=16, unk='<unk>', blank_id=0, sos_id=3, eos_id=4, pad_id=2)
+load model time:22.62 s
+已处理 1000 / 9745 个音频文件
+已处理 2000 / 9745 个音频文件
+已处理 3000 / 9745 个音频文件
+已处理 4000 / 9745 个音频文件
+已处理 5000 / 9745 个音频文件
+已处理 6000 / 9745 个音频文件
+已处理 7000 / 9745 个音频文件
+已处理 8000 / 9745 个音频文件
+已处理 9000 / 9745 个音频文件
+
+所有音频文件处理完成！总用时：69.29 min，推理用时：64.91 min
+结果已保存到 /mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/FireRed_train_audio_batch_8.txt
+
+============================================================
+==================== 处理数据集:train_audio_batch_2 ====================
+model args: Namespace(blank='<blank>', pad='<pad>', sos='<sos>', eos='<eos>', input_length_max=60.0, input_length_min=0.1, output_length_max=250, output_length_min=1, idim=80, odim=7832, n_layers_enc=16, n_head=20, d_model=1280, d_inner=5120, residual_dropout=0.1, pe_maxlen=5000, dropout_rate=0.1, kernel_size=33, n_layers_dec=16, unk='<unk>', blank_id=0, sos_id=3, eos_id=4, pad_id=2)
+load model time:18.61 s
+已处理 1000 / 9691 个音频文件
+已处理 2000 / 9691 个音频文件
+已处理 3000 / 9691 个音频文件
+已处理 4000 / 9691 个音频文件
+已处理 5000 / 9691 个音频文件
+已处理 6000 / 9691 个音频文件
+已处理 7000 / 9691 个音频文件
+已处理 8000 / 9691 个音频文件
+已处理 9000 / 9691 个音频文件
+
+所有音频文件处理完成！总用时：61.86 min，推理用时：57.48 min
+结果已保存到 /mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/FireRed_train_audio_batch_2.txt
+
+============================================================
+==================== 处理数据集:train_audio_batch_4 ====================
+model args: Namespace(blank='<blank>', pad='<pad>', sos='<sos>', eos='<eos>', input_length_max=60.0, input_length_min=0.1, output_length_max=250, output_length_min=1, idim=80, odim=7832, n_layers_enc=16, n_head=20, d_model=1280, d_inner=5120, residual_dropout=0.1, pe_maxlen=5000, dropout_rate=0.1, kernel_size=33, n_layers_dec=16, unk='<unk>', blank_id=0, sos_id=3, eos_id=4, pad_id=2)
+load model time:7.45 s
+已处理 1000 / 9744 个音频文件
+已处理 2000 / 9744 个音频文件
+已处理 3000 / 9744 个音频文件
+已处理 4000 / 9744 个音频文件
+已处理 5000 / 9744 个音频文件
+已处理 6000 / 9744 个音频文件
+已处理 7000 / 9744 个音频文件
+已处理 8000 / 9744 个音频文件
+已处理 9000 / 9744 个音频文件
+
+所有音频文件处理完成！总用时：61.88 min，推理用时：57.52 min
+结果已保存到 /mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/FireRed_train_audio_batch_4.txt
+
+============================================================
+==================== 处理数据集:train_audio_batch_9 ====================
+model args: Namespace(blank='<blank>', pad='<pad>', sos='<sos>', eos='<eos>', input_length_max=60.0, input_length_min=0.1, output_length_max=250, output_length_min=1, idim=80, odim=7832, n_layers_enc=16, n_head=20, d_model=1280, d_inner=5120, residual_dropout=0.1, pe_maxlen=5000, dropout_rate=0.1, kernel_size=33, n_layers_dec=16, unk='<unk>', blank_id=0, sos_id=3, eos_id=4, pad_id=2)
+load model time:7.19 s
+
+所有音频文件处理完成！总用时：0.21 min，推理用时：0.18 min
+结果已保存到 /mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/FireRed_train_audio_batch_9.txt
+
+============================================================
+==================== 处理数据集:train_audio_batch_6 ====================
+model args: Namespace(blank='<blank>', pad='<pad>', sos='<sos>', eos='<eos>', input_length_max=60.0, input_length_min=0.1, output_length_max=250, output_length_min=1, idim=80, odim=7832, n_layers_enc=16, n_head=20, d_model=1280, d_inner=5120, residual_dropout=0.1, pe_maxlen=5000, dropout_rate=0.1, kernel_size=33, n_layers_dec=16, unk='<unk>', blank_id=0, sos_id=3, eos_id=4, pad_id=2)
+load model time:7.19 s
+已处理 1000 / 9714 个音频文件
+已处理 2000 / 9714 个音频文件
+已处理 3000 / 9714 个音频文件
+已处理 4000 / 9714 个音频文件
+已处理 5000 / 9714 个音频文件
+已处理 6000 / 9714 个音频文件
+已处理 7000 / 9714 个音频文件
+已处理 8000 / 9714 个音频文件
+已处理 9000 / 9714 个音频文件
+
+所有音频文件处理完成！总用时：63.92 min，推理用时：59.54 min
+结果已保存到 /mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/FireRed_train_audio_batch_6.txt
+
+============================================================
+==================== 处理数据集:train_audio_batch_5 ====================
+model args: Namespace(blank='<blank>', pad='<pad>', sos='<sos>', eos='<eos>', input_length_max=60.0, input_length_min=0.1, output_length_max=250, output_length_min=1, idim=80, odim=7832, n_layers_enc=16, n_head=20, d_model=1280, d_inner=5120, residual_dropout=0.1, pe_maxlen=5000, dropout_rate=0.1, kernel_size=33, n_layers_dec=16, unk='<unk>', blank_id=0, sos_id=3, eos_id=4, pad_id=2)
+load model time:7.26 s
+已处理 1000 / 9637 个音频文件
+已处理 2000 / 9637 个音频文件
+已处理 3000 / 9637 个音频文件
+已处理 4000 / 9637 个音频文件
+已处理 5000 / 9637 个音频文件
+已处理 6000 / 9637 个音频文件
+已处理 7000 / 9637 个音频文件
+已处理 8000 / 9637 个音频文件
+已处理 9000 / 9637 个音频文件
+
+所有音频文件处理完成！总用时：55.24 min，推理用时：50.63 min
+结果已保存到 /mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/FireRed_train_audio_batch_5.txt
+
+============================================================
