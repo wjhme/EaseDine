@@ -23,7 +23,7 @@ def process_data(data_df, drop_duplicates = True):
     t0 = time.time()
     # 分词、去停用词
     data = get_tokenized(data_df)
-    print(f"分词、去停用词用时：{time.time() - t0} s")
+    print(f"分词、去停用词用时：{time.time() - t0:.2f} s")
 
     if drop_duplicates:
         # 去重
@@ -39,7 +39,7 @@ def process_data(data_df, drop_duplicates = True):
         data = data.drop(columns=['tokenized_hash'])
 
         print(f"原始数据大小：{data_df.shape[0]},重复记录有{data_df.shape[0] - data.shape[0]}个,当前数据大小：{data.shape[0]}")
-    print(f"数据处理用时：{time.time() - t0} s")
+    print(f"数据处理用时：{time.time() - t0:.2f} s")
     return data
 
 class Embeding():

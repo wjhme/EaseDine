@@ -101,7 +101,7 @@ from DOM.utils import process_data, Embeding
 # A_data.to_csv("A_data_Stacking.txt",sep="\t",index=False)
 
 # ============================== 预测A榜数据 dolphin ====================================================
-data = pd.read_csv("/mnt/disk/wjh23/EaseDine/ASR/FireRedASR/A_audio_results/A_audio_dolphin.txt",sep="\t")
+data = pd.read_csv("/mnt/disk/wjh23/EaseDine/ASR/FireRedASR/A_audio_results/FireRed_A_audio_beam_size_5.txt",sep="\t",header=None,names=['uuid','text'])
 A_data = process_data(data, drop_duplicates = False)
 print(A_data.shape)
 
@@ -140,10 +140,11 @@ key_df = based_on_keywords(A_data)
 key_df.loc[key_df['dom_key']==-1,'dom_key'] = A_data[key_df['dom_key']==-1]['dom']
 
 # 查看预测和关键词判断不同的数据
+print("\n查看预测和关键词判断不同的数据：")
 temp = key_df[key_df['dom']!=key_df['dom_key']]
 print(temp[['text','dom','dom_key']])
 
 key_df['dom'] = key_df['dom_key']
 key_df.drop('dom_key',axis=1,inplace=True)
-key_df.to_csv("A_data_Stacking_keyword_dolphin.txt",sep="\t",index=False)
+key_df.to_csv("/mnt/disk/wjh23/EaseDine/DOM/A_audio_results/A_audio_recognition_dom_4_14.txt",sep="\t",index=False)
 # print(f"联合key准确率:{sum(key_df['dom_key'] == key_df['dom'])/key_df.shape[0]:.4f}")
