@@ -3,8 +3,10 @@ import os
 import torch
 import time
 import torchaudio
+import pandas as pd
 from pathlib import Path
 from IPython.display import Audio, display
+from utils import save_results_to_txt
 
 # FunASR相关导入
 from funasr import AutoModel
@@ -12,7 +14,7 @@ from funasr import AutoModel
 # 新增模型路径配置
 MODEL_NAME = "damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch"
 MODEL_REVISION = "v2.0.4"
-MODEL_CACHE_DIR = os.path.expanduser("/mnt/disk/wjh23/models/FunASR_model")  # 自定义模型缓存目录
+MODEL_CACHE_DIR = os.path.expanduser("/mnt/disk/wjh23/models/finetuner_model_test")  # 自定义模型缓存目录
 
 # 设置模型缓存环境变量（在文件开头添加）
 os.environ['MODELSCOPE_CACHE'] = MODEL_CACHE_DIR  # 强制指定缓存目录
@@ -29,7 +31,12 @@ model = AutoModel(
     cache_dir=MODEL_CACHE_DIR,
     disable_update=True,
     device=device,
-    punc_config={"enable": False},  # 不启用标点预测
+    batch_size = 2,
+    punc_config={"enable": False}  # 不启用标点预测
+    # vad_config={"enable": True}  # 启用语音端点检测
+    # tokenizer_conf={
+    #     "hotword_file": "hotwords.txt"
+    # }
 )
 print(f"load model time:{time.time() - t1:.2f} s")
 
@@ -40,7 +47,7 @@ def load_audio(audio_path, target_sr=16000):
         if not audio_file.exists():
             raise FileNotFoundError(f"音频文件不存在: {audio_file}")
 
-        waveform, sample_rate = torchaudio.load(audio_file)
+        waveform, sample_rate = torchaudio.load(str(audio_file))
 
         # 采样率转换
         if sample_rate != target_sr:
@@ -52,13 +59,13 @@ def load_audio(audio_path, target_sr=16000):
             waveform = resampler(waveform)
             sample_rate = target_sr
 
-        # # 确保单声道，兼容模型输入
-        # if waveform.shape[0] > 1:
-        #     waveform = waveform.mean(dim=0, keepdim=True)
-
-        # 确保单声道，使用第一个通道
+        # 确保单声道，兼容模型输入
         if waveform.shape[0] > 1:
-            waveform = waveform[0:1]  # 取第一个通道并保持维度
+            waveform = waveform.mean(dim=0, keepdim=True)
+
+        # # 确保单声道，使用第一个通道
+        # if waveform.shape[0] > 1:
+        #     waveform = waveform[0:1]  # 取第一个通道并保持维度
 
         return waveform, sample_rate
 
@@ -134,8 +141,11 @@ def process_single_file(audio_file, display_detail=False):
             "status": "failed"
         }
 
-def batch_process(input_path, output_file="results.txt"):
-    """批量处理主函数"""
+def batch_process(input_path, output_file="results.txt", sort=True):
+    """
+    批量处理主函数
+    输入：音频文件夹  sort=True:按官方提交顺序排序
+    """
     # 获取文件列表
     if os.path.isdir(input_path):
         audio_files = [os.path.join(input_path, f) for f in os.listdir(input_path) 
@@ -179,15 +189,61 @@ def batch_process(input_path, output_file="results.txt"):
         'status': 'status'
     }, inplace=True)
 
-    # 从uuid列提取语音编号
-    df['uuid_temp'] = df['uuid'].str.extract(r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})')
+    print(f"识别最小用时：{min(df['time']):.2f},最大用时：{max(df['time']):.2f},平均用时：{df['time'].mean():.2f}.")
+    
+    # 保存数据
+    save_results_to_txt(df, output_file, sort=sort)
+    
+    # 打印统计信息
+    print("\n" + "="*60)
+    print(f"批量处理完成！成功 {success_count}/{total_count}")
+    print(f"详细结果已保存至: {output_file}")
+    print("="*60)
 
-    # 更新uuid列并删除临时列
-    df['uuid'] = df['uuid_temp']
-    df.drop(['uuid_temp', 'status'], axis=1, inplace=True)
+def batch_process_file_ls(audio_files, output_file="results.txt", sort=True):
+    """
+    批量处理主函数
+    输入：音频文件路径列表  sort=True:按官方提交顺序排序
+    """
 
-    # 保存为制表符分隔文件
-    df.to_csv(output_file, sep="\t", index=False)
+    import pandas as pd
+
+    # 执行批量识别
+    results = []
+    total_count = len(audio_files)
+    success_count = 0
+    
+    print(f"\n开始批量处理，共 {total_count} 个文件...")
+    
+    for idx, audio_file in enumerate(audio_files, 1):
+        print(f"\n处理进度: {idx}/{total_count}")
+        # print("当前文件:", audio_file)
+        
+        result = process_single_file(audio_file)
+        results.append(result)
+        
+        if result["status"] == "success":
+            success_count += 1
+            # print(f"识别结果: {result['text']}")
+        else:
+            print(f"识别失败: {result['text']}")
+        
+        print(f"识别耗时: {result['duration']:.2f}s")
+        print("-" * 60)
+
+    # 创建DataFrame并重命名列
+    df = pd.DataFrame(results)
+    df.rename(columns={
+        'file': 'uuid',
+        'duration': 'time',
+        'text': 'text',
+        'status': 'status'
+    }, inplace=True)
+
+    print(f"识别最小用时：{min(df['time']):.2f},最大用时：{max(df['time']):.2f},平均用时：{df['time'].mean():.2f}.")
+    
+    # 保存数据
+    save_results_to_txt(df, output_file, sort=sort)
     
     # 打印统计信息
     print("\n" + "="*60)
@@ -196,30 +252,40 @@ def batch_process(input_path, output_file="results.txt"):
     print("="*60)
 
 if __name__ == "__main__":
+    # nohup python FunASR.py >> log/fangyan_finetuner.log 2>&1 &
+
     # 启动前预加载模型（可选）
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     
-    # 批处理
-    input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"  # 替换为你的音频文件/目录路径
-    batch_process(
-        input_path=input_path,
-        output_file="FunASR_train_audio_batch_1_channel_1.txt"
+    # # 批处理
+    # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"  # 替换为你的音频文件/目录路径
+    # # input_path = "/mnt/disk/wjh23/EaseDineDatasets/无法识别语音"
+    # batch_process(
+    #     input_path=input_path,
+    #     output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/train_audio_batch_1_finetuner_test.txt",
+    #     sort = False
+    # )
+
+    fangyan = "/mnt/disk/wjh23/filtered_results.txt"
+    fangyan_df = pd.read_csv(fangyan, sep="\t")
+    uuid_ls = fangyan_df['uuid'].tolist()
+
+    import json
+    uuid_dict_path = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/audio_paths.json"
+    with open(uuid_dict_path, 'r', encoding='utf-8') as f:
+        uuid_dict = json.load(f)
+    
+    audio_files = []
+    for audio in uuid_ls:
+        audio_files.append(uuid_dict[audio])
+
+    batch_process_file_ls(
+        audio_files, 
+        output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/fangyan_results.txt", 
+        sort=False
     )
 
     # # 单文件处理
     # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio_batch_1/0a8a651b-c341-40ca-bd79-194c4a39bfb6.wav"
     # main_process(input_path)
-
-    '''
-    load model time:4.20 s
-    
-    开始语音识别...
-    rtf_avg: 0.157: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.51it/s]
-    执行识别：0.67 s
-
-    ========================================
-    最终识别结果: 甚至出现交易几乎停滞的情况
-    总用时：0.67 s
-    ========================================
-    '''

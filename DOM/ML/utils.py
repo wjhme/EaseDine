@@ -301,7 +301,7 @@ def based_on_keywords(data_df):
     pos_keywords = ['来碗', '来份', '要碗', '来一份', '要份', "要个", "养胃", "热乎"]
     
     # 定义非点餐关键词列表
-    neg_keywords = ['播放', '等于', '声音', '音量', '乘以', "多少", "音乐", "除以", "歌曲", "打开", "唱"]
+    neg_keywords = ['播放', '等于', '声音', '音量', '乘以', "多少", "音乐", "除以", "歌曲", "打开", "唱", "脑筋急转弯"]
     
     # 创建临时列
     pos_match = data_df['text'].str.contains('|'.join(pos_keywords))
