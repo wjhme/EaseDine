@@ -14,7 +14,7 @@ from funasr import AutoModel
 # 新增模型路径配置
 MODEL_NAME = "damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch"
 MODEL_REVISION = "v2.0.4"
-MODEL_CACHE_DIR = os.path.expanduser("/mnt/disk/wjh23/models/finetuner_model_test")  # 自定义模型缓存目录
+MODEL_CACHE_DIR = os.path.expanduser("/mnt/disk/wjh23/models/FunASR_finetuner_models/finetuner_model_test")  # 自定义模型缓存目录
 
 # 设置模型缓存环境变量（在文件开头添加）
 os.environ['MODELSCOPE_CACHE'] = MODEL_CACHE_DIR  # 强制指定缓存目录
@@ -31,7 +31,6 @@ model = AutoModel(
     cache_dir=MODEL_CACHE_DIR,
     disable_update=True,
     device=device,
-    batch_size = 2,
     punc_config={"enable": False}  # 不启用标点预测
     # vad_config={"enable": True}  # 启用语音端点检测
     # tokenizer_conf={
@@ -163,7 +162,7 @@ def batch_process(input_path, output_file="results.txt", sort=True):
     success_count = 0
     
     print(f"\n开始批量处理，共 {total_count} 个文件...")
-    
+    t0 = time.time()
     for idx, audio_file in enumerate(audio_files, 1):
         print(f"\n处理进度: {idx}/{total_count}")
         # print("当前文件:", audio_file)
@@ -189,7 +188,7 @@ def batch_process(input_path, output_file="results.txt", sort=True):
         'status': 'status'
     }, inplace=True)
 
-    print(f"识别最小用时：{min(df['time']):.2f},最大用时：{max(df['time']):.2f},平均用时：{df['time'].mean():.2f}.")
+    print(f"识别最小用时：{min(df['time']):.2f},最大用时：{max(df['time']):.2f},平均用时：{df['time'].mean():.2f},总耗时：{time.time() - t0:.2f}.")
     
     # 保存数据
     save_results_to_txt(df, output_file, sort=sort)
@@ -214,7 +213,8 @@ def batch_process_file_ls(audio_files, output_file="results.txt", sort=True):
     success_count = 0
     
     print(f"\n开始批量处理，共 {total_count} 个文件...")
-    
+
+    t0 = time.time()
     for idx, audio_file in enumerate(audio_files, 1):
         print(f"\n处理进度: {idx}/{total_count}")
         # print("当前文件:", audio_file)
@@ -240,7 +240,7 @@ def batch_process_file_ls(audio_files, output_file="results.txt", sort=True):
         'status': 'status'
     }, inplace=True)
 
-    print(f"识别最小用时：{min(df['time']):.2f},最大用时：{max(df['time']):.2f},平均用时：{df['time'].mean():.2f}.")
+    print(f"min time:{min(df['time']):.2f},max time:{max(df['time']):.2f},mean time:{df['time'].mean():.2f},total time:{time.time() - t0:.2f}.")
     
     # 保存数据
     save_results_to_txt(df, output_file, sort=sort)
@@ -258,33 +258,33 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     
-    # # 批处理
-    # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"  # 替换为你的音频文件/目录路径
-    # # input_path = "/mnt/disk/wjh23/EaseDineDatasets/无法识别语音"
-    # batch_process(
-    #     input_path=input_path,
-    #     output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/train_audio_batch_1_finetuner_test.txt",
-    #     sort = False
-    # )
-
-    fangyan = "/mnt/disk/wjh23/filtered_results.txt"
-    fangyan_df = pd.read_csv(fangyan, sep="\t")
-    uuid_ls = fangyan_df['uuid'].tolist()
-
-    import json
-    uuid_dict_path = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/audio_paths.json"
-    with open(uuid_dict_path, 'r', encoding='utf-8') as f:
-        uuid_dict = json.load(f)
-    
-    audio_files = []
-    for audio in uuid_ls:
-        audio_files.append(uuid_dict[audio])
-
-    batch_process_file_ls(
-        audio_files, 
-        output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/fangyan_results.txt", 
-        sort=False
+    # 批处理
+    input_path = "/mnt/disk/wjh23/EaseDineDatasets/A_audio"  # 替换为你的音频文件/目录路径
+    # input_path = "/mnt/disk/wjh23/EaseDineDatasets/无法识别语音"
+    batch_process(
+        input_path=input_path,
+        output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/A_audio_results/FunASR_A_audio_4_16.txt",
+        sort = True
     )
+
+    # fangyan = "/mnt/disk/wjh23/filtered_results.txt"
+    # fangyan_df = pd.read_csv(fangyan, sep="\t")
+    # uuid_ls = fangyan_df['uuid'].tolist()
+
+    # import json
+    # uuid_dict_path = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/audio_paths.json"
+    # with open(uuid_dict_path, 'r', encoding='utf-8') as f:
+    #     uuid_dict = json.load(f)
+    
+    # audio_files = []
+    # for audio in uuid_ls:
+    #     audio_files.append(uuid_dict[audio])
+
+    # batch_process_file_ls(
+    #     audio_files, 
+    #     output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/fangyan_finetuner_large.txt", 
+    #     sort=False
+    # )
 
     # # 单文件处理
     # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio_batch_1/0a8a651b-c341-40ca-bd79-194c4a39bfb6.wav"

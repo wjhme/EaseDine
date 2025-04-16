@@ -20,8 +20,7 @@ def save_results_to_txt(results, output_file, sort=True):
         "\ufffd": "",    # Unicode 替换字符 �
         '要往': '要碗',
         '来问': '来碗',
-        '来玩': '来碗',
-        '要玩': '要碗',
+        # '来玩': '来碗',
         '小草': '小炒'
     }
 
@@ -31,10 +30,12 @@ def save_results_to_txt(results, output_file, sort=True):
 
     data_df['text'] = data_df['text'].str.replace(regex_pattern, lambda x: replacement_rules[x.group()], regex=True)
 
-    # 删除字母、空格、标点符号
-    # data_df["text"] = data_df["text"].str.replace(r'[\sA-Za-z，。？！,.?!]', '', regex=True)
+    # 删除空格、标点符号
+    data_df["text"] = data_df["text"].str.replace(r'[\s，。？！,.?!]', '', regex=True)
+    # 将小写字母转为大写
+    data_df["text"] = data_df["text"].str.upper()
     # 只保留中文
-    data_df["text"] = data_df["text"].str.replace(r'[^\u4e00-\u9fa5]', '', regex=True) 
+    # data_df["text"] = data_df["text"].str.replace(r'[^\u4e00-\u9fa5]', '', regex=True) 
 
     # 处理uuid顺序
     # 官方提交文档
@@ -42,7 +43,7 @@ def save_results_to_txt(results, output_file, sort=True):
         A_df = pd.read_csv("/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/A.txt",sep="\t")[['uuid']]
         data_df = A_df.merge(data_df, on='uuid', how='left')
 
-    # 识别为空的数文本处理
+    # 识别为空的文本处理
     data_df['text'] = data_df['text'].fillna("天猫精灵")
     # 按比赛提交顺序保存识别结果
     data_df.to_csv(output_file, sep="\t", index=False, header=None)

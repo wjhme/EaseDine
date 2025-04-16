@@ -7,11 +7,11 @@ if torch.cuda.is_available():
     torch.cuda.empty_cache()
 
 # 测试文件
-aduio_uuid = "0c705c6d-166b-4a95-8798-4cada2b10691"
-audio_file = f"/mnt/disk/wjh23/EaseDineDatasets/A_audio/{aduio_uuid}.wav"
+# aduio_uuid = "0c705c6d-166b-4a95-8798-4cada2b10691"
+audio_file = f"/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1/066461e2-4587-4809-aaf4-ea56d3d7c19f.wav"
 main_process(audio_file)
-process_file = f"/mnt/disk/wjh23/EaseDineDatasets/处理后音频/{aduio_uuid}_processed.wav"
-main_process(process_file)
+# process_file = f"/mnt/disk/wjh23/EaseDineDatasets/处理后音频/{aduio_uuid}_processed.wav"
+# main_process(process_file)
 
 # from FunASRProcessor import FunASRProcessor
 # from FunASRFineTuner import FunASRFineTuner
