@@ -1,0 +1,272 @@
+# 核心库导入
+import os
+import torch
+import time
+import torchaudio
+import pandas as pd
+from pathlib import Path
+# from IPython.display import Audio
+from utils import save_results_to_txt
+
+# FunASR相关导入
+from funasr import AutoModel
+
+# 新增模型路径配置
+# 热词版本 damo/speech_paraformer-large-contextual_asr_nat-zh-cn-16k-common-vocab8404
+MODEL_NAME = "damo/speech_paraformer-large-contextual_asr_nat-zh-cn-16k-common-vocab8404"
+MODEL_REVISION = "v2.0.4"
+MODEL_CACHE_DIR = os.path.expanduser("/mnt/disk/wjh23/models/FunASR_finetuner_models/finetuner_model_test")  # 自定义模型缓存目录
+
+# 设置模型缓存环境变量（在文件开头添加）
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+# 全局模型初始化（GPU优先）
+device = "cuda" if torch.cuda.is_available() else "cpu"
+torch.backends.cudnn.benchmark = True  # 启用CUDA加速
+t1 = time.time()
+model = AutoModel(
+    model=MODEL_NAME,
+    model_revision=MODEL_REVISION,
+    disable_update=True,
+    device=device,
+    punc_config={"enable": False}  # 不启用标点预测
+)
+print(f"load model time:{time.time() - t1:.2f} s")
+
+def load_audio(audio_path, target_sr=16000):
+    """音频加载与预处理（直接返回张量）"""
+    try:
+        audio_file = Path(audio_path).resolve()
+        if not audio_file.exists():
+            raise FileNotFoundError(f"音频文件不存在: {audio_file}")
+
+        waveform, sample_rate = torchaudio.load(str(audio_file))
+
+        # 采样率转换
+        if sample_rate != target_sr:
+            print(f"采样率转换: {sample_rate}Hz -> {target_sr}Hz")
+            resampler = torchaudio.transforms.Resample(
+                orig_freq=sample_rate,
+                new_freq=target_sr
+            )
+            waveform = resampler(waveform)
+            sample_rate = target_sr
+
+        # 确保单声道，兼容模型输入
+        if waveform.shape[0] > 1:
+            waveform = waveform.mean(dim=0, keepdim=True)
+
+        # # 确保单声道，使用第一个通道
+        # if waveform.shape[0] > 1:
+        #     waveform = waveform[0:1]  # 取第一个通道并保持维度
+
+        return waveform, sample_rate
+
+    except Exception as e:
+        print(f"音频处理失败: {str(e)}")
+        raise
+
+def asr_pipeline(waveform, sample_rate):
+    """语音识别流程（直接处理音频张量）"""
+    try:
+        # 转换为模型需要的格式（numpy数组）
+        waveform_np = waveform.squeeze().numpy()  # 去除通道维度
+
+        # 热词
+        hotword_str = "阮妍霏 六仔哥 许给 艺凌 夏婉安 王晰 杨伊然 遗憾 安儿陈 且行且开埙 不爱演不出心动 爱海滔滔 阿肆 不甜情歌 四处彷徨"
+        hotword_dict = {"阮妍霏": 5, "夏婉安": 5, "王晰": 5}  # 权重需在1-5范围内
+        # 执行识别（假设模型支持numpy输入）
+        result = model.generate(
+            input=waveform_np, 
+            sample_rate=sample_rate
+        )
+
+        if len(result) > 0 and "text" in result[0]:
+            return result[0]["text"]
+        return "未识别到有效内容"
+
+    except Exception as e:
+        print(f"识别过程中发生错误: {str(e)}")
+        raise
+
+def main_process(audio_file):
+    """主处理流程"""
+    try:
+        # 加载并预处理音频
+        waveform, sample_rate = load_audio(audio_file)
+        print("\n音频张量形状:", waveform.shape)
+
+        # # 显示音频
+        # display(Audio(waveform.numpy(), rate=sample_rate))
+
+        # 执行识别
+        print("\n开始语音识别...")
+        t0 = time.time()
+        result_text = asr_pipeline(waveform, sample_rate)
+        spend_time = time.time() - t0
+        
+        print("\n" + "=" * 40)
+        print(f"最终识别结果: {result_text}\n 总用时：{spend_time:.2f} s")
+        print("=" * 40)
+
+    except Exception as e:
+        print(f"\n流程异常终止: {str(e)}")
+
+def process_single_file(audio_file, display_detail=False):
+    """单文件处理流程"""
+    try:
+        waveform, sample_rate = load_audio(audio_file)
+        
+        # if display_detail:
+        #     print("\n音频张量形状:", waveform.shape)
+        #     display(Audio(waveform.numpy(), rate=sample_rate))
+
+        t0 = time.time()
+        result_text = asr_pipeline(waveform, sample_rate)
+        spend_time = time.time() - t0
+        
+        return {
+            "file": audio_file,
+            "text": result_text,
+            "duration": spend_time,
+            "status": "success"
+        }
+    except Exception as e:
+        print(f"处理失败: {audio_file}")
+        return {
+            "file": audio_file,
+            "text": str(e),
+            "duration": 0,
+            "status": "failed"
+        }
+
+def batch_process(input_path, output_file="results.txt", sort=True):
+    """
+    批量处理主函数
+    输入：音频文件夹  sort=True:按官方提交顺序排序
+    """
+    # 获取文件列表
+    if os.path.isdir(input_path):
+        audio_files = [os.path.join(input_path, f) for f in os.listdir(input_path) 
+                      if f.endswith(('.wav', '.mp3', '.flac'))]
+    elif os.path.isfile(input_path):
+        audio_files = [input_path]
+    else:
+        raise ValueError("无效的输入路径")
+
+    import pandas as pd
+
+    # 执行批量识别
+    results = []
+    total_count = len(audio_files)
+    success_count = 0
+    
+    print(f"\n开始批量处理，共 {total_count} 个文件...")
+    t0 = time.time()
+    for idx, audio_file in enumerate(audio_files, 1):
+        print(f"\n处理进度: {idx}/{total_count}")
+        # print("当前文件:", audio_file)
+        
+        result = process_single_file(audio_file)
+        results.append(result)
+        
+        if result["status"] == "success":
+            success_count += 1
+            # print(f"识别结果: {result['text']}")
+        else:
+            print(f"识别失败: {result['text']}")
+        
+        print(f"识别耗时: {result['duration']:.2f}s")
+        print("-" * 60)
+
+    # 创建DataFrame并重命名列
+    df = pd.DataFrame(results)
+    df.rename(columns={
+        'file': 'uuid',
+        'duration': 'time',
+        'text': 'text',
+        'status': 'status'
+    }, inplace=True)
+
+    print(f"识别最小用时：{min(df['time']):.2f},最大用时：{max(df['time']):.2f},平均用时：{df['time'].mean():.2f},总耗时：{time.time() - t0:.2f}.")
+    
+    # 保存数据
+    save_results_to_txt(df, output_file, sort=sort)
+    
+    # 打印统计信息
+    print("\n" + "="*60)
+    print(f"批量处理完成！成功 {success_count}/{total_count}")
+    print(f"详细结果已保存至: {output_file}")
+    print("="*60)
+
+def batch_process_file_ls(audio_files, output_file="results.txt", sort=True):
+    """
+    批量处理主函数
+    输入：音频文件路径列表  sort=True:按官方提交顺序排序
+    """
+
+    import pandas as pd
+
+    # 执行批量识别
+    results = []
+    total_count = len(audio_files)
+    success_count = 0
+    
+    print(f"\n开始批量处理，共 {total_count} 个文件...")
+
+    t0 = time.time()
+    for idx, audio_file in enumerate(audio_files, 1):
+        print(f"\n处理进度: {idx}/{total_count}")
+        # print("当前文件:", audio_file)
+        
+        result = process_single_file(audio_file)
+        results.append(result)
+        
+        if result["status"] == "success":
+            success_count += 1
+            # print(f"识别结果: {result['text']}")
+        else:
+            print(f"识别失败: {result['text']}")
+        
+        print(f"识别耗时: {result['duration']:.2f}s")
+        print("-" * 60)
+
+    # 创建DataFrame并重命名列
+    df = pd.DataFrame(results)
+    df.rename(columns={
+        'file': 'uuid',
+        'duration': 'time',
+        'text': 'text',
+        'status': 'status'
+    }, inplace=True)
+
+    print(f"min time:{min(df['time']):.2f},max time:{max(df['time']):.2f},mean time:{df['time'].mean():.2f},total time:{time.time() - t0:.2f}.")
+    
+    # 保存数据
+    save_results_to_txt(df, output_file, sort=sort)
+    
+    # 打印统计信息
+    print("\n" + "="*60)
+    print(f"批量处理完成！成功 {success_count}/{total_count}")
+    print(f"详细结果已保存至: {output_file}")
+    print("="*60)
+
+if __name__ == "__main__":
+    # nohup python FunASR.py >> log/fangyan_finetuner.log 2>&1 &
+
+    # 启动前预加载模型（可选）
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    
+    # 批处理
+    input_path = "/mnt/disk/wjh23/EaseDineDatasets/热词音频"  # 替换为你的音频文件/目录路径
+    # input_path = "/mnt/disk/wjh23/EaseDineDatasets/无法识别语音"
+    batch_process(
+        input_path=input_path,
+        output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/A_audio_results/FunASR_hotword_test.txt",
+        sort = False
+    )
+
+    # # 单文件处理
+    # input_path = "/mnt/disk/wjh23/EaseDineDatasets/A_audio/76ac949e-74c1-43b2-9489-93eb9faa4e6d.wav"
+    # main_process(input_path)
