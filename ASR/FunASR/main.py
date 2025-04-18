@@ -7,10 +7,12 @@ if torch.cuda.is_available():
     torch.cuda.empty_cache()
 
 # 测试文件
-# aduio_uuid = "0c705c6d-166b-4a95-8798-4cada2b10691"
-audio_file = f"/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1/066461e2-4587-4809-aaf4-ea56d3d7c19f.wav"
+audio_uuid = "0abed3b5-691d-4b35-b2b4-900a2f1777f2"
+# audio_file = f"/mnt/disk/wjh23/EaseDineDatasets/存在噪音的语音/{audio_uuid}.wav"
+audio_file = "/mnt/disk/wjh23/EaseDineDatasets/A_audio/0612d9d1-950e-4c8d-9c72-ac4a02f3481d.wav"
 main_process(audio_file)
-# process_file = f"/mnt/disk/wjh23/EaseDineDatasets/处理后音频/{aduio_uuid}_processed.wav"
+# process_file = f"/mnt/disk/wjh23/EaseDineDatasets/音频降噪后语音/{audio_uuid}_processed.wav"
+# process_file = "/mnt/disk/wjh23/separated_audio/4d1826a9-2821-48e9-af58-d3136b796d71/vocals.wav"
 # main_process(process_file)
 
 # from FunASRProcessor import FunASRProcessor

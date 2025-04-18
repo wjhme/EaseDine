@@ -5,16 +5,16 @@ import time
 import torchaudio
 import pandas as pd
 from pathlib import Path
-from IPython.display import Audio, display
 from utils import save_results_to_txt
 
 # FunASR相关导入
 from funasr import AutoModel
 
 # 新增模型路径配置
+# 热词版本 damo/speech_paraformer-large-contextual_asr_nat-zh-cn-16k-common-vocab8404
 MODEL_NAME = "damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch"
 MODEL_REVISION = "v2.0.4"
-MODEL_CACHE_DIR = os.path.expanduser("/mnt/disk/wjh23/models/FunASR_finetuner_models/finetuner_model_test")  # 自定义模型缓存目录
+MODEL_CACHE_DIR = os.path.expanduser("/mnt/disk/wjh23/models/FunASR_finetuner_models/finetuner_model_2345_6")  # 自定义模型缓存目录
 
 # 设置模型缓存环境变量（在文件开头添加）
 os.environ['MODELSCOPE_CACHE'] = MODEL_CACHE_DIR  # 强制指定缓存目录
@@ -58,13 +58,9 @@ def load_audio(audio_path, target_sr=16000):
             waveform = resampler(waveform)
             sample_rate = target_sr
 
-        # 确保单声道，兼容模型输入
+        # 确保单声道，兼容模型输入(均值池化)
         if waveform.shape[0] > 1:
             waveform = waveform.mean(dim=0, keepdim=True)
-
-        # # 确保单声道，使用第一个通道
-        # if waveform.shape[0] > 1:
-        #     waveform = waveform[0:1]  # 取第一个通道并保持维度
 
         return waveform, sample_rate
 
@@ -77,9 +73,13 @@ def asr_pipeline(waveform, sample_rate):
     try:
         # 转换为模型需要的格式（numpy数组）
         waveform_np = waveform.squeeze().numpy()  # 去除通道维度
-        
+
         # 执行识别（假设模型支持numpy输入）
-        result = model.generate(input=waveform_np, sample_rate=sample_rate)
+        result = model.generate(
+            input=waveform_np, 
+            sample_rate=sample_rate, 
+            beam_size=10     # 扩大搜索宽度
+        )
 
         if len(result) > 0 and "text" in result[0]:
             return result[0]["text"]
@@ -94,10 +94,6 @@ def main_process(audio_file):
     try:
         # 加载并预处理音频
         waveform, sample_rate = load_audio(audio_file)
-        print("\n音频张量形状:", waveform.shape)
-
-        # # 显示音频
-        # display(Audio(waveform.numpy(), rate=sample_rate))
 
         # 执行识别
         print("\n开始语音识别...")
@@ -112,14 +108,10 @@ def main_process(audio_file):
     except Exception as e:
         print(f"\n流程异常终止: {str(e)}")
 
-def process_single_file(audio_file, display_detail=False):
+def process_single_file(audio_file):
     """单文件处理流程"""
     try:
         waveform, sample_rate = load_audio(audio_file)
-        
-        if display_detail:
-            print("\n音频张量形状:", waveform.shape)
-            display(Audio(waveform.numpy(), rate=sample_rate))
 
         t0 = time.time()
         result_text = asr_pipeline(waveform, sample_rate)
@@ -154,8 +146,6 @@ def batch_process(input_path, output_file="results.txt", sort=True):
     else:
         raise ValueError("无效的输入路径")
 
-    import pandas as pd
-
     # 执行批量识别
     results = []
     total_count = len(audio_files)
@@ -165,14 +155,12 @@ def batch_process(input_path, output_file="results.txt", sort=True):
     t0 = time.time()
     for idx, audio_file in enumerate(audio_files, 1):
         print(f"\n处理进度: {idx}/{total_count}")
-        # print("当前文件:", audio_file)
         
         result = process_single_file(audio_file)
         results.append(result)
         
         if result["status"] == "success":
             success_count += 1
-            # print(f"识别结果: {result['text']}")
         else:
             print(f"识别失败: {result['text']}")
         
@@ -258,33 +246,33 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     
-    # 批处理
-    input_path = "/mnt/disk/wjh23/EaseDineDatasets/A_audio"  # 替换为你的音频文件/目录路径
-    # input_path = "/mnt/disk/wjh23/EaseDineDatasets/无法识别语音"
-    batch_process(
-        input_path=input_path,
-        output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/A_audio_results/FunASR_A_audio_4_16.txt",
-        sort = True
-    )
-
-    # fangyan = "/mnt/disk/wjh23/filtered_results.txt"
-    # fangyan_df = pd.read_csv(fangyan, sep="\t")
-    # uuid_ls = fangyan_df['uuid'].tolist()
-
-    # import json
-    # uuid_dict_path = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/audio_paths.json"
-    # with open(uuid_dict_path, 'r', encoding='utf-8') as f:
-    #     uuid_dict = json.load(f)
-    
-    # audio_files = []
-    # for audio in uuid_ls:
-    #     audio_files.append(uuid_dict[audio])
-
-    # batch_process_file_ls(
-    #     audio_files, 
-    #     output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/fangyan_finetuner_large.txt", 
-    #     sort=False
+    # # 批处理
+    # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"  # 替换为你的音频文件/目录路径
+    # # input_path = "/mnt/disk/wjh23/EaseDineDatasets/无法识别语音"
+    # batch_process(
+    #     input_path=input_path,
+    #     output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/batch_1_finetuner_2345_6.txt",
+    #     sort = False
     # )
+
+    fangyan = "/mnt/disk/wjh23/filtered_results.txt"
+    fangyan_df = pd.read_csv(fangyan, sep="\t")
+    uuid_ls = fangyan_df['uuid'].tolist()
+
+    import json
+    uuid_dict_path = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/audio_paths.json"
+    with open(uuid_dict_path, 'r', encoding='utf-8') as f:
+        uuid_dict = json.load(f)
+    
+    audio_files = []
+    for audio in uuid_ls:
+        audio_files.append(uuid_dict[audio])
+
+    batch_process_file_ls(
+        audio_files, 
+        output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/fangyan_finetuner_2345_6.txt", 
+        sort=False
+    )
 
     # # 单文件处理
     # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio_batch_1/0a8a651b-c341-40ca-bd79-194c4a39bfb6.wav"

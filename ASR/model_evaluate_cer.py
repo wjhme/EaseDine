@@ -48,10 +48,10 @@ if __name__ == "__main__":
     #     print(f"{file_name} 数据集 CER 得分:{ans:.4f}\n")
 
     
-    hypothesis = f"/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/fangyan_finetuner_large.txt"
+    hypothesis = f"/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/fangyan_finetuner_2345_6.txt"
     reference = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/train.txt"
     # reference = "/mnt/disk/wjh23/EaseDine/DOM/train.txt"
-    save = f"/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis_cer/fangyan_finetuner_large_cer.txt"
+    save = f"/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis_cer/fangyan_finetuner_2345_6_cer.txt"
 
     ans = CER(reference, hypothesis, save)
     print(f"audio_batch_1_beam_size_5 数据集 CER 得分:{ans:.4f}\n")
