@@ -1,5 +1,5 @@
 import sys
-from Classifiers import Classifier
+from Classifiers import DOM
 from pathlib import Path
 
 # 获取当前文件的绝对路径
@@ -62,7 +62,7 @@ test_features = np.hstack([test_lda_embeding, test_word2vec_embeding])
 print("test_features形状:", test_features.shape)
 
 # 初始化并训练
-model = Classifier()
+model = DOM()
 # model.train(train_features, train_label)
 
 # train_pred = model.predict_voting(test_features)

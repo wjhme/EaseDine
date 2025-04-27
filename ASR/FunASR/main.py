@@ -1,39 +1,43 @@
 import torch
-from FunASR import main_process
+import json
+import pandas as pd
+from FunASR import ASR
+
+# nohup python main.py >> log/batch_1_fangyan_finetuner_mabin.log 2>&1 &
+
+# # 启动前预加载模型（可选）
+# if torch.cuda.is_available():
+#     torch.cuda.empty_cache()
+
+model_cache_dir = "/mnt/disk/wjh23/models/FunASR_finetuner_models/finetuner_my_enhanced"
+asr = ASR(model_cache_dir=model_cache_dir)
+
+# ================= 单文件/批处理 ============================
+# input_path = "/mnt/disk/wjh23/EaseDineDatasets/A_audio"  # 替换为你的音频文件/目录路径
+input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"
+asr.batch_process(
+    input_path=input_path,
+    output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/batch_1_finetuner_my_enhanced.txt",
+    # output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/A_audio_results/FunASR_mabin_enhenced_cer_over_0.txt",
+    sort_results = False
+)
 
 
-# 启动前预加载模型（可选）
-if torch.cuda.is_available():
-    torch.cuda.empty_cache()
+# # =================== 方言处理 ===========================
+# fangyan = "/mnt/disk/wjh23/Test/filtered_results.txt"
+# fangyan_df = pd.read_csv(fangyan, sep="\t")
+# uuid_ls = fangyan_df['uuid'].tolist()
 
-# 测试文件
-audio_uuid = "0abed3b5-691d-4b35-b2b4-900a2f1777f2"
-# audio_file = f"/mnt/disk/wjh23/EaseDineDatasets/存在噪音的语音/{audio_uuid}.wav"
-audio_file = "/mnt/disk/wjh23/EaseDineDatasets/A_audio/0612d9d1-950e-4c8d-9c72-ac4a02f3481d.wav"
-main_process(audio_file)
-# process_file = f"/mnt/disk/wjh23/EaseDineDatasets/音频降噪后语音/{audio_uuid}_processed.wav"
-# process_file = "/mnt/disk/wjh23/separated_audio/4d1826a9-2821-48e9-af58-d3136b796d71/vocals.wav"
-# main_process(process_file)
+# uuid_dict_path = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/audio_paths.json"
+# with open(uuid_dict_path, 'r', encoding='utf-8') as f:
+#     uuid_dict = json.load(f)
 
-# from FunASRProcessor import FunASRProcessor
-# from FunASRFineTuner import FunASRFineTuner
+# audio_files = []
+# for audio in uuid_ls:
+#     audio_files.append(uuid_dict[audio])
 
-# # 初始化处理器
-# processor = FunASRProcessor()
-
-# # 单文件识别
-# result = processor.transcribe("test.wav")
-# print(f"识别结果: {result['text']}")
-
-# 批量处理
-# processor.batch_process("audio_directory/", "results.tsv")
-
-# # 模型微调
-# fine_tuner = FunASRFineTuner(
-#     model_name="damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch",
-#     train_data="path/to/train_data",
-#     valid_data="path/to/valid_data",
-#     num_epochs=15
+# asr.batch_process(
+#     audio_files, 
+#     output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/fangyan_finetuner_mabin_enhanced_cer_over_0.txt", 
+#     sort_results=False
 # )
-# fine_tuner.train()
-# fine_tuner.save_model("custom_model/")

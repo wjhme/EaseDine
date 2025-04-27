@@ -1,5 +1,5 @@
 from fireredasr.models.fireredasr import FireRedAsr
-from utils import load_pred_data, save_results_to_txt
+from EaseDine.ASR.utils import load_pred_data, save_results_to_txt
 from pathlib import Path
 import time
 import torch

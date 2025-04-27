@@ -9,7 +9,6 @@ from functools import partial
 from noisereduce import reduce_noise
 from multiprocessing import Pool, cpu_count
 
-
 def process_single_file(input_path, output_dir, target_rms=0.03):
     """降噪处理单个音频文件"""
     try:
@@ -193,33 +192,282 @@ def audio_quality_check(audio_path, sample_rate=16000, low_thresh_db=-30, high_t
     
     return result
 
-def normalize_audio_rms(audio, target_rms=0.1):
-    """
-    RMS能量标准化
-    
-    参数:
-        audio: 音频信号
-        target_rms: 目标RMS值(默认0.1)
-    
-    返回:
-        numpy.ndarray: 标准化后的音频
-    """
-    current_rms = np.sqrt(np.mean(audio**2))
-    if current_rms < 1e-10:  # 避免除以0
-        return audio
-    scaling_factor = target_rms / current_rms
-    return audio * scaling_factor
 
+import os
+import csv
+import torchaudio
+from audiomentations import Compose, AddBackgroundNoise, TimeStretch, PitchShift, Gain
+from multiprocessing import Pool
+from tqdm import tqdm
+
+# 配置增强参数
+class AugConfig:
+    # 输入输出路径
+    scp_path = "/mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/cer_over_0.scp"
+    output_audio_dir = "/mnt/disk/wjh23/EaseDineDatasets/processed_audio/enhanced_audio_cer_over_0"
+    original_text_path = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/train.txt"
+    output_text_path = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/enhanced_audio_cer_over_0.txt"
+    noise_dir = "/mnt/disk/wjh23/EaseDineDatasets/musan/sound-bible"
+
+    # 增强组合配置
+    augmenter = Compose([
+        TimeStretch(
+            min_rate=0.85, max_rate=1.15, # 语速调整为85%-115%
+            p=0.6
+        ),
+        PitchShift(
+            min_semitones=-4, max_semitones=4,  # 音高偏移±4个半音
+            p=0.6
+        ),
+        # 增加背景白噪声
+        AddBackgroundNoise(
+            noise_dir, 
+            min_snr_db=5, max_snr_db=15, # 信噪比范围5-15dB
+            p=0.2
+        ),
+        Gain(
+            min_gain_db=-6, max_gain_db=6,# 音量调整±6dB 
+            p=0.4
+        )
+    ])
+
+
+# 加载SCP文件
+def load_scp_file():
+    audio_map = {}
+    with open(AugConfig.scp_path) as f:
+        for line in f:
+            uuid, path = line.strip().split()
+            audio_map[uuid] = path
+    return audio_map
+
+# 加载原始标注
+def load_text_annotations():
+    text_map = {}
+    with open(AugConfig.original_text_path, 'r', encoding='utf-8') as f:
+        reader = csv.reader(f, delimiter='\t')
+        for row in reader:
+            if len(row) >= 3:
+                uuid, text, dom = row[0], row[1], row[2]
+                text_map[uuid] = (text, dom)
+    return text_map
+
+# 音频增强处理
+def process_audio(args):
+    uuid, audio_path = args
+    try:
+        # 加载原始音频
+        waveform, orig_sr = torchaudio.load(audio_path)
+        waveform = waveform.numpy()[0]
+
+        # 统一采样率
+        if orig_sr != 16000:
+            waveform = torchaudio.functional.resample(
+                torch.tensor(waveform), orig_sr, 16000
+            ).numpy()
+
+        # 应用增强
+        augmented = AugConfig.augmenter(waveform, sample_rate=16000)
+        
+        # 保存增强音频
+        output_path = os.path.join(
+            AugConfig.output_audio_dir, 
+            f"{uuid}_aug.wav"
+        )
+        torchaudio.save(output_path, torch.tensor([augmented]), 16000)
+        
+        return uuid, output_path
+    
+    except Exception as e:
+        print(f"Error processing {uuid}: {str(e)}")
+        return None
+
+# 多方言适配规则库
+dialect_variants = {
+    # 上海话（吴语）
+    "wu": {
+        "词汇替换": {
+            "我": ["吾", "阿拉"],
+            "的": ["额", "个"],
+            "不要": ["覅"],
+            "怎么样": ["哪能"],
+            "今天": ["今朝"]
+        },
+        "句尾助词": ["呀", "啦", "喏"],
+        "量词替换": {
+            "个": ["只"],
+            "条": ["根"]
+        }
+    },
+    
+    # 粤语
+    "yue": {
+        "词汇替换": {
+            "什么": ["咩"],
+            "的": ["嘅"],
+            "是": ["係"],
+            "吃": ["食"],
+            "给": ["畀"]
+        },
+        "句尾助词": ["啊", "咯", "啵"],
+        "语法结构": {
+            "有没有": ["有冇"],
+            "先吃饭": ["食饭先"]
+        }
+    },
+
+    # 川渝话（西南官话）
+    "chuan": {
+        "词汇替换": {
+            "什么": ["啥子"],
+            "很好": ["巴适"],
+            "聊天": ["摆龙门阵"],
+            "麻烦": ["恼火"]
+        },
+        "叠词增强": {
+            "一点点": ["一滴滴"],
+            "很漂亮": ["乖桑桑"]
+        }
+    },
+
+    # 闽南语
+    "minnan": {
+        "词汇替换": {
+            "人": ["郎"],
+            "房子": ["厝"],
+            "吃": ["食"],
+            "说": ["讲"]
+        },
+        "语法结构": {
+            "有吃饭": ["有食"],
+            "给我": ["互我"]
+        },
+        "入声词": ["食", "石", "铁"]
+    },
+
+    # 东北话
+    "dongbei": {
+        "词汇替换": {
+            "干什么": ["噶哈"],
+            "厉害": ["尿性"],
+            "马上": ["立马"],
+            "聊天": ["唠嗑"]
+        },
+        "程度副词": {
+            "很": ["老", "贼"],
+            "非常": ["嗷嗷"]
+        }
+    },
+
+    # 湖南话（湘语）
+    "xiang": {
+        "词汇替换": {
+            "什么": ["么子"],
+            "吃": ["呷"],
+            "妻子": ["堂客"],
+            "小孩": ["细伢子"]
+        },
+        "句尾语气": {
+            "呢": ["啰"],
+            "了": ["哒"]
+        }
+    }
+}
+
+# 随机方言适配函数（示例）
+def adapt_dialect(text, dialect_probability=0.2):
+    import random
+    from itertools import chain
+    
+    # 随机选择一种方言
+    selected_dialect = random.choice(list(dialect_variants.keys()))
+    dialect_rules = dialect_variants[selected_dialect]
+    
+    # 词汇替换
+    if '词汇替换' in dialect_rules:
+        for std_word, variants in dialect_rules['词汇替换'].items():
+            if random.random() < dialect_probability and std_word in text:
+                replacement = random.choice(variants)
+                text = text.replace(std_word, replacement)
+    
+    # 句尾助词增强
+    if '句尾助词' in dialect_rules and random.random() < 0.1:
+        particle = random.choice(dialect_rules['句尾助词'])
+        text = text.rstrip('。') + particle + '。'
+    
+    # 特殊语法处理（闽南语"有+动词"）
+    if selected_dialect == "minnan" and '语法结构' in dialect_rules:
+        for pattern, replacement in dialect_rules['语法结构'].items():
+            if pattern in text:
+                text = text.replace(pattern, random.choice(replacement))
+    
+    return text
+
+# 批量处理主函数
+def batch_augmentation(num_workers=8):
+    # 创建输出目录
+    os.makedirs(AugConfig.output_audio_dir, exist_ok=True)
+    
+    # 加载数据
+    audio_map = load_scp_file()
+    text_map = load_text_annotations()
+    
+    # 准备处理队列
+    tasks = []
+    for uuid, path in audio_map.items():
+        if uuid in text_map:  # 只处理有标注的音频
+            tasks.append((uuid, path))
+    
+    # 多进程处理
+    augmented_data = []
+    with Pool(num_workers) as pool:
+        results = pool.imap(process_audio, tasks)
+        for result in tqdm(results, total=len(tasks)):
+            if result:
+                uuid, audio_path = result
+                original_text, dom = text_map[uuid]
+                # 文本适配
+                augmented_text = adapt_dialect(original_text)
+                augmented_data.append({
+                    "uuid": uuid,
+                    "audio_path": audio_path,
+                    "original_text": original_text,
+                    "augmented_text": augmented_text,
+                    "dom": dom
+                })
+    
+    # 保存增强后的标注文件
+    with open(AugConfig.output_text_path, 'w', encoding='utf-8') as f:
+        writer = csv.writer(f, delimiter='\t')
+        for item in augmented_data:
+            writer.writerow([
+                item["uuid"] + "_aug",
+                item["augmented_text"],
+                item["dom"],
+                item["original_text"],
+                os.path.basename(item["audio_path"])
+            ])
 
 if __name__ == "__main__":
-    # =================== 降噪处理示例用法 ===================
-    input_directory = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"
-    output_directory = "/mnt/disk/wjh23/EaseDineDatasets/processed_audio/train_audio_batch_1"
+    # 启动增强流程
+    batch_augmentation(num_workers=15)
+    print(f"处理完成！增强数据保存在：{AugConfig.output_audio_dir}")
+    print(f"新标注文件：{AugConfig.output_text_path}")
+
+
+# if __name__ == "__main__":
+#     # =================== 降噪处理示例用法 ===================
+#     input_directory = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"
+#     output_directory = "/mnt/disk/wjh23/EaseDineDatasets/processed_audio/train_audio_batch_1"
     
-    # 执行批量处理
-    t0 = time.time()
-    batch_process_audio(input_directory, output_directory)
-    print(f"音频降噪并归一化处理用时：{time.time() - t0:.2f} s")
+#     # 执行批量处理
+#     # t0 = time.time()
+#     # batch_process_audio(input_directory, output_directory)
+#     # print(f"音频降噪并归一化处理用时：{time.time() - t0:.2f} s")
+
+#     input_path = "/mnt/disk/wjh23/EaseDineDatasets/热词音频/0a0c93c1-2b5c-42dc-aefa-6e238aad5051.wav"
+#     output_dir = "/mnt/disk/wjh23/EaseDineDatasets/音频降噪后语音"
+#     process_single_file(input_path, output_dir)
 
     # =================== 人声分离示例 ===================
     # input_file = "/mnt/disk/wjh23/EaseDineDatasets/存在噪音的语音/4d1826a9-2821-48e9-af58-d3136b796d71.wav"  # 替换为实际的音频文件路径
@@ -260,3 +508,8 @@ if __name__ == "__main__":
     #     print(f"\n削波片段: {len(result['clipping_segments'])}处")
     #     for start, end in result['clipping_segments'][:3]:
     #         print(f"  {start:.4f}-{end:.4f}s")
+
+
+
+
+

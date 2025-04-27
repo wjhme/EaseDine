@@ -7,7 +7,7 @@ def save_results_to_txt(results, output_file, sort=True):
     :param results: 包含识别结果的列表，每个元素是一个字典
     :param output_file: 输出文件路径
     """
-    data_df = results
+    data_df = results.copy()
     # 从uuid列提取语音编号
     data_df['uuid_temp'] = data_df['uuid'].str.extract(r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})')
 
@@ -20,7 +20,6 @@ def save_results_to_txt(results, output_file, sort=True):
         "\ufffd": "",    # Unicode 替换字符 �
         '要往': '要碗',
         '来问': '来碗',
-        # '来玩': '来碗',
         '小草': '小炒'
     }
 
@@ -43,7 +42,5 @@ def save_results_to_txt(results, output_file, sort=True):
         A_df = pd.read_csv("/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/A.txt",sep="\t")[['uuid']]
         data_df = A_df.merge(data_df, on='uuid', how='left')
 
-    # 识别为空的文本处理
-    data_df['text'] = data_df['text'].fillna("天猫精灵")
     # 按比赛提交顺序保存识别结果
     data_df.to_csv(output_file, sep="\t", index=False, header=None)
