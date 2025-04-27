@@ -1,5 +1,5 @@
 from fireredasr.models.fireredasr import FireRedAsr
-from utils import load_data
+from EaseDine.ASR.utils import load_data
 from pathlib import Path
 import time
 

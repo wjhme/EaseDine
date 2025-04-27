@@ -38,48 +38,21 @@ if __name__ == "__main__":
     # ========================== FireRedASR =======================================
     # nohup python model_evaluate_cer.py > FireRedASR/log/cer_out.log 2>&1 &
 
-    # FILE_NAMES = ['train_audio_batch_1', 'train_audio_batch_3', 'train_audio_batch_7', 'train_audio_batch_8', 'train_audio_batch_2', 'train_audio_batch_4', 'train_audio_batch_9', 'train_audio_batch_6', 'train_audio_batch_5']
-    # for file_name in FILE_NAMES:
-    #     hypothesis = f"/mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/uuid_hypothesis/FireRed_{file_name}.txt"
-    #     reference = "/mnt/disk/wjh23/EaseDine/DOM/train.txt"
-    #     save = f"/mnt/disk/wjh23/EaseDine/ASR/FireRedASR/FireRed_all_batch_results/uuid_hypothesis_cer/{file_name}.txt"
+    FILE_NAMES = ['train_audio_batch_1', 'train_audio_batch_3', 'train_audio_batch_7', 'train_audio_batch_8', 'train_audio_batch_2', 'train_audio_batch_4', 'train_audio_batch_9', 'train_audio_batch_6', 'train_audio_batch_5']
+    for file_name in FILE_NAMES:
+        hypothesis = f"/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis_batchs/{file_name}.txt"
+        reference = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/train.txt"
+        save = f"/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis_batchs_cer/{file_name}_cer.txt"
 
-    #     ans = CER(reference, hypothesis, save)
-    #     print(f"{file_name} 数据集 CER 得分:{ans:.4f}\n")
+        ans = CER(reference, hypothesis, save)
+        print(f"{file_name} 数据集 CER 得分:{ans:.4f}\n")
 
-    
-    hypothesis = f"/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/fangyan_finetuner_2345_6.txt"
-    reference = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/train.txt"
-    # reference = "/mnt/disk/wjh23/EaseDine/DOM/train.txt"
-    save = f"/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis_cer/fangyan_finetuner_2345_6_cer.txt"
+# # fangyan_finetuner_enhenced_over_0_best
+#     data_name = "fangyan_finetuner_mabin_enhanced_cer_over_0"
+#     hypothesis = f"/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/{data_name}.txt"
+#     reference = "/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/train.txt"
+#     # reference = "/mnt/disk/wjh23/EaseDine/DOM/train.txt"
+#     save = f"/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis_cer/{data_name}_cer.txt"
 
-    ans = CER(reference, hypothesis, save)
-    print(f"audio_batch_1_beam_size_5 数据集 CER 得分:{ans:.4f}\n")
-
-    # # ================================== FireRedASR ================================================
-
-    # hypothesis = pd.read_csv(r"E:\githubworkspace\EaseDine\ASR\FireRedASR\FireRed_train_audio_batch_1.txt",sep="\t") # time: min-0.06;max-6.37;mean-0.07
-    # hypothesis.columns = ['uuid','pred_text']
-    # print(hypothesis[hypothesis['pred_text'].isna()])
-    # hypothesis['pred_text'] = hypothesis['pred_text'].fillna("")
-    # hypothesis['pred_text'] = hypothesis['pred_text'].str.replace(r'[a-zA-Z\s，。？！]', '', regex=True)
-
-    # reference = pd.read_csv(r"E:\githubworkspace\EaseDine\DOM\train.txt",sep="\t")
-    # # 删除字母和空格
-    # reference['text'] = reference['text'].str.replace(r'[a-zA-Z\s，。？！]', '', regex=True)
-
-    # # print(reference.head())
-    # # print(hypothesis.head())
-
-    # result_df = hypothesis.merge(reference[['uuid', 'text']], on='uuid', how='left')[['text','pred_text']]
-
-    # # print(result_df.head(10))
-    # text_pairs = list(zip(result_df['text'], result_df['pred_text']))
-
-    # fire_red_asr_cer = []
-    # for ref, hyp in text_pairs:
-    #     # print(ref,hyp)
-    #     result = calculate_cer(ref, hyp)
-    #     fire_red_asr_cer.append(result)
-
-    # print(f"FireRedASR train_audio_batch_1 ASR得分:{1 - sum(fire_red_asr_cer)/len(fire_red_asr_cer):.4f}")
+#     ans = CER(reference, hypothesis, save)
+#     print(f"{data_name} 数据集 CER 得分:{ans:.4f}\n")
