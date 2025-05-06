@@ -42,7 +42,7 @@ class ASR:
         # 配置环境变量
         os.environ["MODELSCOPE_CACHE"] = model_cache_dir
         os.environ["MODELSCOPE_HUB_CACHE"] = model_cache_dir
-        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+        os.environ["CUDA_VISIBLE_DEVICES"] = "1"
         
         # 设备配置
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")

@@ -1,5 +1,6 @@
 import collections
 import jieba  # 中文分词
+jieba.initialize() 
 import torch
 import xxhash
 import numpy as np
@@ -10,7 +11,6 @@ from torch.utils.data import Dataset, DataLoader
 import time
 from gensim.models import Word2Vec
 from gensim import corpora, models
-# from glove import Corpus, Glove
 import json
 
 def process_data(data_df, drop_duplicates = True):
@@ -234,8 +234,6 @@ class Embeding():
     #     return glove_embeding
 
 def get_tokenized(data, stopwords_path = "/mnt/disk/wjh23/EaseDine/DOM/stopwords/my_stopwords.txt"):
-    # 复制数据避免修改原数据
-    df = data.copy()
 
     # 加载停用词表
     with open(stopwords_path, 'r', encoding='utf-8') as f:
@@ -251,7 +249,10 @@ def get_tokenized(data, stopwords_path = "/mnt/disk/wjh23/EaseDine/DOM/stopwords
                (not word.isspace()) and          # 去空白符
                (not all(c in '，。！？；：“”‘’（）【】…—' for c in word))  # 去中文标点
         ]
-
+    # if type(data) == str:
+    #     return tokenize(data)
+    # 复制数据避免修改原数据
+    df = data.copy()
     df['tokenized'] = df['text'].apply(tokenize)
     # print(max(df['text'].apply(lambda x:len(x))))
     return df
@@ -380,6 +381,12 @@ def shuffl_split_data(df, test_size = 0.2):
 
     return train_df.reset_index(drop=True), test_df.reset_index(drop=True)
 
+# 从文件读取关键词列表
+def load_keywords_from_file(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        keywords = [line.strip() for line in file if line.strip()]
+    return keywords
+
 def based_on_keywords(data_df):
     '''
               text                  dom     dom_test
@@ -391,11 +398,12 @@ def based_on_keywords(data_df):
     我要唱吕可可的来一份失恋            0        1
     '''
     # 定义点餐关键词列表
-    pos_keywords = ['来碗', '来份', '要碗', '来一份', '要份', "要个", "养胃", "热乎", "不费牙", "顺口的", "少盐的", "油腻的", "不腻的", "易嚼的", "少盐少糖的", "太咸的", "不要辣", "不要油腻"]
-    
+    # pos_keywords = ['来碗', '来份', '要碗', '来一份', '要份', "要个", "养胃", "热乎", "不费牙", "顺口的", "少盐的", "油腻的", "不腻的", "易嚼的", "少盐少糖的", "太咸的", "不要辣", "不要油腻"]
+    pos_keywords = load_keywords_from_file("/mnt/disk/wjh23/EaseDine/DOM/pos_keywords.txt")
+
     # 定义非点餐关键词列表
-    neg_keywords = ['播放', '等于', '声音', '音量', '乘以', "多少", "音乐", "除以", "歌曲", "打开", "唱", "脑筋急转弯"]
-    
+    # neg_keywords = ['播放', '等于', '声音', '音量', '乘以', "多少", "音乐", "除以", "歌曲", "打开", "唱", "脑筋急转弯"]
+    neg_keywords = load_keywords_from_file("/mnt/disk/wjh23/EaseDine/DOM/neg_keywords.txt")
     # 创建临时列
     pos_match = data_df['text'].str.contains('|'.join(pos_keywords))
     neg_match = data_df['text'].str.contains('|'.join(neg_keywords))

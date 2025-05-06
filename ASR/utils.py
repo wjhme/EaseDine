@@ -121,7 +121,7 @@ def get_files(directory):
         print(f"错误：{e}")
         return -1
 
-def merge_txt_files_to_dataframe(file_list, base_path="/mnt/disk/wjh23/FunASR/finetuner/train_data"):
+def merge_txt_files_to_dataframe(file_list, base_path=None):
     """
     合并多个文本文件到一个Pandas数据框
     
@@ -144,7 +144,7 @@ def merge_txt_files_to_dataframe(file_list, base_path="/mnt/disk/wjh23/FunASR/fi
                             on_bad_lines='warn')  # 跳过错误行
             # 生成 uuid_path 列
             dir_path = '/mnt/disk/wjh23/EaseDineDatasets/train_audio/'  # 可以修改为您需要的实际路径
-            df['uuid_path'] = dir_path + filename[:-4] + '/' + df['uuid'] + '.wav'
+            df['uuid_path'] = dir_path + filename[:-8] + '/' + df['uuid'] + '.wav'
 
             dfs.append(df)
             

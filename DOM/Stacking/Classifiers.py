@@ -109,13 +109,41 @@ class DOM:
         # 查看预测和关键词判断不同的数据
         print("\n查看预测和关键词判断不同的数据：")
         temp = key_df[key_df['dom']!=key_df['dom_key']]
-        print(temp[['text','dom','dom_key']])
+        print(temp[['uuid','text','dom','dom_key']])
 
         key_df['dom'] = key_df['dom_key']
         key_df.drop('dom_key',axis=1,inplace=True)
 
         # 保存结果
         key_df.to_csv(save_path, sep="\t", index=False)
+    
+    def pre_dom_str(self, recognized_str):
+        '''根据识别的文本预测DOM类别'''
+
+        # 数据预处理
+        processed_data = process_data(recognized_str, drop_duplicates = False)
+
+        # 生成词向量
+        em = Embeding(processed_data)
+        # Word3Vec
+        DIM = 100
+        word2vec_embeding = em.get_word2vec(f"{str(DOM_path)}/embeding_models/word2vec/word2vec_model_0_{DIM}.bin")
+
+        # LDA 主题特征
+        num_topics = 20
+        lda_model_path = f"{str(DOM_path)}/embeding_models/lda/lda_model_{num_topics}.model"
+        lda_dictionary_path = f"{str(DOM_path)}/embeding_models/lda/lda_dictionary_{num_topics}.gensim"
+        lda_corpus_path = f"{str(DOM_path)}/embeding_models/lda/lda_corpus_{num_topics}.mm"
+        lda_embeding = em.get_lda(num_topics,lda_model_path,lda_dictionary_path,lda_corpus_path)
+
+        # 按行拼接（沿 axis=1 水平拼接）
+        features = np.hstack([lda_embeding, word2vec_embeding])
+        print("生成的数据特征形状:", features.shape)
+
+        # 类别预测
+        pred = self.predict_voting(features)
+
+        return pred
     
     def evaluate(self, pred_label, true_label):
         """
