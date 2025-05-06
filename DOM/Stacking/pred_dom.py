@@ -63,11 +63,12 @@ from Classifiers import DOM
 #     key_df.drop('dom_key',axis=1,inplace=True)
 
 #     # 保存结果
-#     key_df.to_csv(save_path, sep="\t", index=False)
+#     key_df.to_csv(save_path, sep="\t", index=False) 
+# fangyan_finetuner_enhenced_over_0_best batch_1_finetuner_enhenced_over_0_best
 
 if __name__ == "__main__":
 
-    recognized_path = "/mnt/disk/wjh23/EaseDine/ASR/FunASR/A_audio_results/FunASR__enhenced_cer_0_over_0.txt"
-    save_path = "/mnt/disk/wjh23/EaseDine/DOM/A_audio_results/A_audio_recognition_dom_4_27.txt"
+    recognized_path = "/mnt/disk/wjh23/EaseDine/ASR/FunASR/A_audio_results/FunASR_A_audio_best_model_allbatch_0_1_best.txt"
+    save_path = "/mnt/disk/wjh23/EaseDine/DOM/A_audio_results/A_audio_recognition_dom_allbatch_0_1_best.txt"
     dom = DOM()
     dom.pre_dom(recognized_path, save_path)

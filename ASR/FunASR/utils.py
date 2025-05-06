@@ -17,10 +17,7 @@ def save_results_to_txt(results, output_file, sort=True):
 
     # 定义替换规则字典（左边为需要替换的词，右边为目标词）
     replacement_rules = {
-        "\ufffd": "",    # Unicode 替换字符 �
-        '要往': '要碗',
-        '来问': '来碗',
-        '小草': '小炒'
+        '要往': '要碗'
     }
 
     # 生成正则表达式模式（按关键词长度降序排列，避免短词优先匹配）
@@ -33,8 +30,6 @@ def save_results_to_txt(results, output_file, sort=True):
     data_df["text"] = data_df["text"].str.replace(r'[\s，。？！,.?!]', '', regex=True)
     # 将小写字母转为大写
     data_df["text"] = data_df["text"].str.upper()
-    # 只保留中文
-    # data_df["text"] = data_df["text"].str.replace(r'[^\u4e00-\u9fa5]', '', regex=True) 
 
     # 处理uuid顺序
     # 官方提交文档
