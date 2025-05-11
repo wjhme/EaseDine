@@ -15,16 +15,16 @@ def save_results_to_txt(results, output_file, sort=True):
     data_df['uuid'] = data_df['uuid_temp']
     data_df.drop(['uuid_temp', 'status', 'time'], axis=1, inplace=True)
 
-    # 定义替换规则字典（左边为需要替换的词，右边为目标词）
-    replacement_rules = {
-        '要往': '要碗'
-    }
+    # # 定义替换规则字典（左边为需要替换的词，右边为目标词）
+    # replacement_rules = {
+    #     '要往': '要碗'
+    # }
 
-    # 生成正则表达式模式（按关键词长度降序排列，避免短词优先匹配）
-    patterns = sorted(replacement_rules.keys(), key=len, reverse=True)
-    regex_pattern = re.compile('|'.join(map(re.escape, patterns)))
+    # # 生成正则表达式模式（按关键词长度降序排列，避免短词优先匹配）
+    # patterns = sorted(replacement_rules.keys(), key=len, reverse=True)
+    # regex_pattern = re.compile('|'.join(map(re.escape, patterns)))
 
-    data_df['text'] = data_df['text'].str.replace(regex_pattern, lambda x: replacement_rules[x.group()], regex=True)
+    # data_df['text'] = data_df['text'].str.replace(regex_pattern, lambda x: replacement_rules[x.group()], regex=True)
 
     # 删除空格、标点符号
     data_df["text"] = data_df["text"].str.replace(r'[\s，。？！,.?!]', '', regex=True)

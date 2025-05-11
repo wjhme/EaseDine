@@ -43,9 +43,10 @@ if __name__=="__main__":
 #     select_data[['uuid','uuid_path']].to_csv("/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/train_val_03.scp",sep=" ",header=None,index=False)
 
 # ================== 0.0 < cer < 0.1 的数据 ===============================
-    min_cer, max_cer = 0.0, 1.0
+    min_cer, max_cer = 0.6, 2.0
     select_data = select_data_by_cer_range(min_cer, max_cer, data_cer_dir = uuid_hypothesis_cer)
-    select_data[['uuid','uuid_path']].to_csv("/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/train_val_0_1.scp",sep=" ",header=None,index=False)
+    select_data[['uuid','pred_text','text','cer']].to_csv("/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/train_val_1_2.scp",sep="\t",index=False)
+    # select_data[['uuid','uuid_path']].to_csv("/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/train_val_1_2.scp",sep=" ",header=None,index=False)
 
 
 # # 划分数据集和验证集

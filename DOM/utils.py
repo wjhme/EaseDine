@@ -13,7 +13,7 @@ from gensim.models import Word2Vec
 from gensim import corpora, models
 import json
 
-def process_data(data_df, drop_duplicates = True):
+def process_data(data_df, stop_words= "/mnt/disk/wjh23/EaseDine/DOM/stopwords/my_stopwords.txt", drop_duplicates = True):
     '''
     数据预处理：
     1.分词、去停用词
@@ -22,7 +22,7 @@ def process_data(data_df, drop_duplicates = True):
     '''
     t0 = time.time()
     # 分词、去停用词
-    data = get_tokenized(data_df)
+    data = get_tokenized(data_df, stop_words)
     print(f"分词、去停用词用时：{time.time() - t0:.2f} s")
 
     if drop_duplicates:
@@ -43,15 +43,14 @@ def process_data(data_df, drop_duplicates = True):
     return data
 
 class Embeding():
-    def __init__(self, data):
-        self.data = data
-
-    def train_word2vec(self, vector_size = 100, sg = 0):
+    def __init__(self):
+        pass
+    def train_word2vec(self, data, vector_size = 100, sg = 0):
         '''
         训练Word2Vec模型
         '''
         # 提取分词后的句子列表
-        sentences = self.data['tokenized'].tolist()
+        sentences = data['tokenized'].tolist()
 
         if not sg:
             # 训练 Word2Vec 模型 CBOW 模型(适合快速训练和常见任务，但对低频词敏感)
@@ -73,9 +72,9 @@ class Embeding():
                 workers=8,           # 并行线程数
                 sg=1
             )
-        model.save(f"./EaseDine/DOM/embeding_models/word2vec/word2vec_model_{sg}_{vector_size}.bin")  # 二进制格式（保存模型结构和权重）
+        model.save(f"./EaseDine/DOM/embeding_models/que_word2vec/word2vec_model_{sg}_{vector_size}.bin")  # 二进制格式（保存模型结构和权重）
 
-    def get_word2vec(self, embeding_model_path, sg=0, norm_type='l2'):
+    def get_word2vec(self, data, embeding_model_path, sg=0, norm_type='l2'):
         '''
         生成Word2Vec词向量，可选归一化
         
@@ -100,7 +99,7 @@ class Embeding():
             return np.mean(vectors, axis=0)
 
         # 获取所有句子的向量（二维数组）
-        embeddings = np.stack([get_sentence_vector(sentence) for sentence in self.data['tokenized']])
+        embeddings = np.stack([get_sentence_vector(sentence) for sentence in data['tokenized']])
 
         # 归一化处理
         if norm_type == 'l2':
@@ -112,12 +111,12 @@ class Embeding():
 
         return embeddings  # 形状: (样本数, 词向量维度)
 
-    def train_lda(self, num_topics = 5):
+    def train_lda(self, data, num_topics = 5):
         '''
         训练LDA主题特征提取模型
         '''
         # 提取分词后的句子列表
-        sentences = self.data['tokenized'].tolist()
+        sentences = data['tokenized'].tolist()
 
         # 创建词典（词汇表）
         dictionary = corpora.Dictionary(sentences)
@@ -152,7 +151,7 @@ class Embeding():
         for topic_id in range(num_topics):
             print(f"主题 {topic_id}: {lda_model.print_topic(topic_id)}")
 
-    def get_lda(self, num_topics, lda_model_path, lda_dictionary_path, lda_corpus_path):
+    def get_lda(self, data, num_topics, lda_model_path, lda_dictionary_path, lda_corpus_path):
         '''
         生成LDA主题特征
         '''
@@ -166,7 +165,7 @@ class Embeding():
         # corpus = corpora.MmCorpus(lda_corpus_path)
 
         # 生成语料库
-        new_corpus = [dictionary.doc2bow(text) for text in self.data['tokenized']]
+        new_corpus = [dictionary.doc2bow(text) for text in data['tokenized']]
         
         # 提取文档-主题分布
         doc_topics = [lda_model.get_document_topics(doc) for doc in new_corpus]
@@ -233,7 +232,7 @@ class Embeding():
 
     #     return glove_embeding
 
-def get_tokenized(data, stopwords_path = "/mnt/disk/wjh23/EaseDine/DOM/stopwords/my_stopwords.txt"):
+def get_tokenized(data, stopwords_path):
 
     # 加载停用词表
     with open(stopwords_path, 'r', encoding='utf-8') as f:

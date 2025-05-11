@@ -68,7 +68,7 @@ from Classifiers import DOM
 
 if __name__ == "__main__":
 
-    recognized_path = "/mnt/disk/wjh23/EaseDine/ASR/FunASR/A_audio_results/FunASR_A_audio_best_model_allbatch_0_1_best.txt"
-    save_path = "/mnt/disk/wjh23/EaseDine/DOM/A_audio_results/A_audio_recognition_dom_allbatch_0_1_best.txt"
+    recognized_path = "/mnt/disk/wjh23/EaseDine/ASR/FunASR/A_audio_results/FunASR_A_audio_best_model_189_train_val_avg.txt"
+    save_path = "/mnt/disk/wjh23/EaseDine/DOM/A_audio_results/A_audio_recognition_dom_189_train_val_avg.txt"
     dom = DOM()
     dom.pre_dom(recognized_path, save_path)

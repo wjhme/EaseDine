@@ -81,17 +81,17 @@ class DOM:
         processed_data = process_data(recognized_data, drop_duplicates = False)
 
         # 生成词向量
-        em = Embeding(processed_data)
+        em = Embeding()
         # Word3Vec
         DIM = 100
-        word2vec_embeding = em.get_word2vec(f"{str(DOM_path)}/embeding_models/word2vec/word2vec_model_0_{DIM}.bin")
+        word2vec_embeding = em.get_word2vec(processed_data,f"{str(DOM_path)}/embeding_models/word2vec/word2vec_model_0_{DIM}.bin")
 
         # LDA 主题特征
         num_topics = 20
         lda_model_path = f"{str(DOM_path)}/embeding_models/lda/lda_model_{num_topics}.model"
         lda_dictionary_path = f"{str(DOM_path)}/embeding_models/lda/lda_dictionary_{num_topics}.gensim"
         lda_corpus_path = f"{str(DOM_path)}/embeding_models/lda/lda_corpus_{num_topics}.mm"
-        lda_embeding = em.get_lda(num_topics,lda_model_path,lda_dictionary_path,lda_corpus_path)
+        lda_embeding = em.get_lda(processed_data,num_topics,lda_model_path,lda_dictionary_path,lda_corpus_path)
 
         # 按行拼接（沿 axis=1 水平拼接）
         features = np.hstack([lda_embeding, word2vec_embeding])
