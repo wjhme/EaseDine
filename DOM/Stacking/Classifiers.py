@@ -20,7 +20,7 @@ sys.path.append(str(project_root))
 from DOM.utils import process_data, based_on_keywords, Embeding
 
 class DOM:
-    def __init__(self, model_dir="saved_models"):
+    def __init__(self, model_dir="/mnt/disk/wjh23/EaseDine/DOM/Stacking/saved_models"):
         self.model_dir = model_dir
         os.makedirs(self.model_dir, exist_ok=True)
         

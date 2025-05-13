@@ -1,7 +1,7 @@
 import pandas as pd
 import re
 
-def save_results_to_txt(results, output_file, sort=True):
+def save_results_to_txt(results, output_file):
     """
     将 results (uuid, text, dom) 保存为 txt 文件(按官方uuid顺序调整)
     :param results: 包含识别结果的列表，每个元素是一个字典
@@ -27,15 +27,9 @@ def save_results_to_txt(results, output_file, sort=True):
     # data_df['text'] = data_df['text'].str.replace(regex_pattern, lambda x: replacement_rules[x.group()], regex=True)
 
     # 删除空格、标点符号
-    data_df["text"] = data_df["text"].str.replace(r'[\s，。？！,.?!]', '', regex=True)
+    data_df["text"] = data_df["text"].str.replace(r'[\s，。：“”？！,.?!]', '', regex=True)
     # 将小写字母转为大写
     data_df["text"] = data_df["text"].str.upper()
 
-    # 处理uuid顺序
-    # 官方提交文档
-    if sort:
-        A_df = pd.read_csv("/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/A.txt",sep="\t")[['uuid']]
-        data_df = A_df.merge(data_df, on='uuid', how='left')
-
-    # 按比赛提交顺序保存识别结果
+    # 保存识别结果
     data_df.to_csv(output_file, sep="\t", index=False, header=None)
