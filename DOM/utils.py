@@ -26,8 +26,6 @@ def process_data(data_df, stop_words= "/mnt/disk/wjh23/EaseDine/DOM/stopwords/my
     print(f"分词、去停用词用时：{time.time() - t0:.2f} s")
 
     if drop_duplicates:
-        # 去重
-        # data = data.drop_duplicates(subset=['tokenized'],keep = 'first')
 
         # 将 tokenized 列转换为哈希值 (提速关键)
         data['tokenized_hash'] = data['tokenized'].apply(

@@ -4,8 +4,8 @@
 
 import torch
 import json
-from utils import llm_corrector
-from ASR.FunASR.funasr import ASR
+# from utils import llm_corrector
+from ASR.FunASR.my_funasr import ASR
 
 import os
 import sys
@@ -13,30 +13,34 @@ import time
 import pandas as pd
 from DOM.Stacking.Classifiers import DOM
 
-
+'''
+189_mode_raw_enhanced_epcho_48
+189_mode_raw_enhanced_epcho_22_second
+'''
 # ================================ 语音识别模块 ===================================
 t0 = time.time()
 # 启动前预加载模型（可选）
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
 
-# 模型路径
-model_cache_dir = "/mnt/disk/wjh23/models/FunASR_finetuner_models/189_mode_raw_enhanced_epcho_48"
-asr = ASR(model_cache_dir=model_cache_dir)
+# # 模型路径 
+# model_cache_dir = "/mnt/disk/wjh23/models/FunASR_finetuner_models/189_mode_raw_enhanced_epcho_60"
+# asr = ASR(model_cache_dir=model_cache_dir)
 
 # 音频文件/目录路径
 input_path = "/mnt/disk/wjh23/EaseDineDatasets/dataset_b"  
-output_file = "/mnt/disk/wjh23/EaseDine/ASR/FunASR/dataset_b/B_audio_189_mode_raw_enhanced_epoch_48.txt"
+# input_path = "/mnt/disk/wjh23/EaseDineDatasets/clean_dataset_b/MossFormerGAN_SE_16K"  # 降噪音频
+# output_file = "/mnt/disk/wjh23/EaseDine/ASR/FunASR/dataset_b/B_audio_189_mode_raw_enhanced_epoch_60_new.txt"
 # input_path = "/mnt/disk/wjh23/EaseDineDatasets/train_audio/train_audio_batch_1"
-# output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/FunASR_all_batch_results/uuid_hypothesis/batch_1_enhence_model_allbatch_0_1_best.txt"
+output_file="/mnt/disk/wjh23/EaseDine/ASR/FunASR/dataset_b/audio_enhance_b.txt"
 
-# 进行语音识别
-asr.batch_process(
-    input_path=input_path,
-    output_file = output_file
-)
+# # 进行语音识别
+# asr.batch_process(
+#     input_path=input_path,
+#     output_file = output_file
+# )
 
-print(f"语音识别耗时:{(time.time() - t0)/60:.2f}分钟.")
+# print(f"语音识别耗时:{(time.time() - t0)/60:.2f}分钟.")
 
 # # 官方提交文档
 # ref_df = pd.read_csv("/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label_B/B.txt",sep="\t")[['uuid']]
@@ -67,7 +71,7 @@ t0 = time.time()
 # 语音识别文本数据路径
 recognized_path = output_file
 #　意图识别输出路径
-save_path = "/mnt/disk/wjh23/EaseDine/DOM/dataset_b/B_audio_dom_189_mode_raw_enhanced_epoch_48.txt"
+save_path = "/mnt/disk/wjh23/EaseDine/DOM/dataset_b/dom_516.txt"
 dom = DOM()
 dom.pre_dom(recognized_path, save_path)
 

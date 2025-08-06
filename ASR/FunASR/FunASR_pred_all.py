@@ -1,6 +1,6 @@
 '''使用FunASR模型识别所有训练集音频，用于预处理数据集，提供FunASR模型微调'''
 
-from FunASR import ASR
+from my_funasr import ASR
 import time
 import torch
 

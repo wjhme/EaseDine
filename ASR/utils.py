@@ -1,7 +1,59 @@
 from pathlib import Path
+import Levenshtein
 import pandas as pd
 import os
 import re
+
+
+
+def calculate_cer(reference: str, hypothesis: str, 
+                 detail_analysis: bool = False) -> float:
+    """
+    计算中文字错率（CER）
+    
+    参数:
+        reference : 标注文本（标准答案）
+        hypothesis : 识别结果文本
+        detail_analysis : 是否返回详细编辑操作统计
+        
+    返回:
+        CER值（当detail=True时返回包含详细信息的字典）
+    """
+    
+    edit_ops = Levenshtein.editops(reference, hypothesis)
+    edits = {'insertions': 0, 'deletions': 0, 'substitutions': 0}
+    for op in edit_ops:
+        if op[0] == 'insert':
+            edits['insertions'] += 1
+        elif op[0] == 'delete':
+            edits['deletions'] += 1
+        elif op[0] == 'replace':
+            edits['substitutions'] += 1
+    distance = Levenshtein.distance(reference, hypothesis)
+    
+    # 计算总字符数（中文按字统计）
+    ref_len = len(reference)
+    
+    # 处理空标注文本的特殊情况
+    if ref_len == 0:
+        cer = 1.0 if len(hypothesis) > 0 else 0.0
+        if detail_analysis:
+            return {'cer': cer, 'edits': edits, 'distance': distance}
+        return cer
+    
+    cer = distance / ref_len
+    
+    if detail_analysis:
+        return {
+            'cer': cer,
+            'distance': distance,
+            'ref_len': ref_len,
+            'edits': edits,
+            'insertions': edits['insertions'],
+            'deletions': edits['deletions'],
+            'substitutions': edits['substitutions']
+        }
+    return cer
 
 def load_data(transcriptions_file, train_audio):
     """
@@ -50,46 +102,36 @@ def load_pred_data(pred_audio):
 
 def save_results_to_txt(results, output_file):
     """
-    将 results 列表中的 uttid 和 text 保存为 txt 文件(按官方uuid顺序调整)
+    将 results (uuid, text, dom) 保存为 txt 文件(按官方uuid顺序调整)
     :param results: 包含识别结果的列表，每个元素是一个字典
     :param output_file: 输出文件路径
     """
-    # 官方提交文档
-    A_df = pd.read_csv("/mnt/disk/wjh23/EaseDineDatasets/智慧养老_label/A.txt",sep="\t")[['uuid']]
+    data_df = results.copy()
+    # 从uuid列提取语音编号
+    data_df['uuid_temp'] = data_df['uuid'].str.extract(r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})')
 
-    # 将原始结果列表转换为DataFrame
-    df = pd.DataFrame(results)[["uttid", "text"]]  # 明确指定需要保留的列
-    df = df.rename(columns={
-        "uttid": "uuid", 
-        "text": "text"
-    })
+    # 更新uuid列并删除临时列
+    data_df['uuid'] = data_df['uuid_temp']
+    data_df.drop(['uuid_temp', 'status', 'time'], axis=1, inplace=True)
 
-    # 定义替换规则字典（左边为需要替换的词，右边为目标词）
-    replacement_rules = {
-        '要往': '要碗',
-        '来问': '来碗',
-        '来玩': '来碗',
-        '要玩': '要碗',
-        '小草': '小炒'
-    }
+    # # 定义替换规则字典（左边为需要替换的词，右边为目标词）
+    # replacement_rules = {
+    #     '要往': '要碗'
+    # }
 
-    # 生成正则表达式模式（按关键词长度降序排列，避免短词优先匹配）
-    patterns = sorted(replacement_rules.keys(), key=len, reverse=True)
-    regex_pattern = re.compile('|'.join(map(re.escape, patterns)))
+    # # 生成正则表达式模式（按关键词长度降序排列，避免短词优先匹配）
+    # patterns = sorted(replacement_rules.keys(), key=len, reverse=True)
+    # regex_pattern = re.compile('|'.join(map(re.escape, patterns)))
 
-    df['text'] = df['text'].str.replace(regex_pattern, lambda x: replacement_rules[x.group()], regex=True)
+    # data_df['text'] = data_df['text'].str.replace(regex_pattern, lambda x: replacement_rules[x.group()], regex=True)
 
-    # 删除字母、空格、标点符号
-    # df["text"] = df["text"].str.replace(r'[\sA-Za-z，。？！,.?!]', '', regex=True)
-    # 只保留中文
-    df["text"] = df["text"].str.replace(r'[^\u4e00-\u9fa5]', '', regex=True) 
+    # 删除空格、标点符号
+    data_df["text"] = data_df["text"].str.replace(r'[\s，。：“”？！,.?!]', '', regex=True)
+    # 将小写字母转为大写
+    data_df["text"] = data_df["text"].str.upper()
 
-    # 处理uuid顺序
-    sorted_df = A_df.merge(df, on='uuid', how='left')
-
-    # 按比赛提交顺序保存识别结果
-    sorted_df.to_csv(output_file, sep="\t", index=False, header=None)
-    print(f"结果已保存到 {output_file}")
+    # 保存识别结果
+    data_df.to_csv(output_file, sep="\t", index=False, header=None)
 
 def get_folderames(path):
 

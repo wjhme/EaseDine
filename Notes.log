@@ -69,6 +69,10 @@ ASR得分         所用模型或方法                            用时       
 0.9775      (batch_1_enhence_model_189_train_val, best)                                                       cer==0:8400/9815    
 0.9771      (batch_1_enhence_model_189_train_val, avg)                                                      cer==0:8384/9815 
 0.9607      (batch_1_enhence_model_allbatch_0_1_best)
+0.9879      (189_mode_raw_enhanced_epcho_43,多次微调,最后原始训练集和增强数据集同时进行微调,beam_size=10)          cer==0:8987/9815 
+0.9883      (189_mode_raw_enhanced_epcho_48,多次微调,最后原始训练集和增强数据集同时进行微调,beam_size=10)          cer==0:9039/9815 
+0.9892      (189_mode_raw_enhanced_epcho_60,多次微调,最后原始训练集和增强数据集同时进行微调,beam_size=10)          cer==0:9099/9815 
+
 
 【方言数据】
 ASR得分           所用模型或方法
