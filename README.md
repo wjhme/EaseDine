@@ -4,11 +4,15 @@
 ## 功能特性
 
 - **核心功能1-ASR**：高精度语音识别
+
 模型文件：[智慧养老语音识别模型 · 模型库](https://www.modelscope.cn/models/wjh6002/speech_recognition_moel)
+
 方法：数据增强+FunASR开源语音识别模型微调
 - **核心功能2-DOM**：用户意图识别
+
 规则判别+集成模型分类（基分类器:naive_bayes,logistic_regression,svm,random_forest）
 - **核心功能3-QUE**：饮食智能推荐
+
 LLM提取指令中菜品特征+基于Faiss进行相似菜品召回+LLM推荐
 
 ## 快速开始
