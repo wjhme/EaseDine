@@ -1,0 +1,31 @@
+# EaseDine
+智慧点餐系统，实现精准识别用户语音内容，并判断用户是否有点餐意图，针对点餐指令合理化推荐外卖菜品。
+
+## 功能特性
+
+- **核心功能1-ASR**：高精度语音识别
+- **核心功能2-DOM**：用户意图识别
+- **核心功能3-QUE**：饮食智能推荐
+
+## 快速开始
+
+### 前置条件
+
+- Python 3.10
+- pip 20.0+
+
+### 安装指南
+
+```bash
+cd project
+
+# 创建虚拟环境（推荐） Linux
+conda activate -n easedine python=3.10
+conda activate easedine
+
+# 安装依赖
+pip install -r requirements.txt
+
+# 运行
+python run.py
+```
