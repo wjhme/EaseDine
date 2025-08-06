@@ -4,6 +4,7 @@
 ## 功能特性
 
 - **核心功能1-ASR**：高精度语音识别
+- 模型文件：[智慧养老语音识别模型 · 模型库](https://www.modelscope.cn/models/wjh6002/speech_recognition_moel)
 - **核心功能2-DOM**：用户意图识别
 - **核心功能3-QUE**：饮食智能推荐
 
